@@ -57,8 +57,6 @@ int main(int argc, char* argv[])
             continue;
         }
 
-        printf("Connection accepted \n");
-
         char buffer[MAX_MESSAGE_SIZE] = {0};
 
         ssize_t read_bytes = recv(accepted_conn, buffer, sizeof(buffer) - 1, 0);
@@ -79,6 +77,10 @@ int main(int argc, char* argv[])
             perror("Failed to receive message");
         }
 
+        char response[] = "Hello from server";
+
+        write(accepted_conn, response, strlen(response));
+        
         close(accepted_conn);
     }
 
