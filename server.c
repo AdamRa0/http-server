@@ -1,5 +1,6 @@
 #include <netinet/in.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    printf("Server is running and listening on port: 7000");
+    printf("Server is running and listening on port 7000\n");
 
     if (listen(socket_fd, 10) < 0)
     {
@@ -66,9 +67,9 @@ int main(int argc, char* argv[])
         {
             buffer[read_bytes] = '\0';
             printf("Client message: %s\n", buffer);
-        }
-
-        if (read_bytes == 0)
+        } 
+        
+        else if (read_bytes == 0)
         {
             printf("Connection closed by client\n");
         }
