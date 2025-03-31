@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "HTTPReqParser.h"
+
 #define MAX_MESSAGE_SIZE 1024
 #define PORT 7000
 
@@ -65,6 +67,9 @@ int main(int argc, char* argv[])
         {
             buffer[read_bytes] = '\0';
             printf("Client message: %s\n", buffer);
+
+            HTTPParserResult result = request_parser(buffer);
+            printf("%s\n", result.method);
         } 
         
         else if (read_bytes == 0)
