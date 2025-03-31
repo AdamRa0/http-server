@@ -1,5 +1,4 @@
 #include "HTTPReqParser.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -110,26 +109,23 @@ HTTPParserResult request_parser(char* data)
 
     char* headers_start = data;
 
-    headers_start = strstr(headers_start, request_line);
+    char* crlf = strstr(data, "\r\n");
 
-    if (headers_start)
+    if (crlf)
     {
-        headers_start += strlen(request_line);
-
-        printf("Headers Start: %s\n", headers_start);
-
-        if (*headers_start == '\r' && *(headers_start + 1) == '\n')
-        {
-            headers_start += 2;
-        } else if (*headers_start == '\n')
-        {
-            headers_start += 1;
-        }
-
+        headers_start = crlf + 2;
     } else
     {
-        free(data_dup);
-        return result;
+        char* lf = strstr(data, "\n");
+        if (lf)
+        {
+            headers_start = lf + 1;
+        }
+        else 
+        {
+            free(data_dup);
+            return result;
+        }
     }
 
     char* body_start = NULL;
