@@ -1,4 +1,5 @@
 #include "HTTPReqParser.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -53,7 +54,6 @@ enum HTTPMethods method_comparor(char* method)
 HTTPParserResult request_parser(char* data) 
 {
     HTTPParserResult result = {0};
-    enum HTTPMethods method;
 
     if (data == NULL || strlen(data) == 0)
     {
@@ -61,62 +61,123 @@ HTTPParserResult request_parser(char* data)
     }
 
     char* data_dup = strdup(data);
- 
-    int found_boundary = 0;
 
-    for(int i = 0; i < strlen(data_dup) - 1; i++)
+    char* ptr1;
+
+    char* request_line = strtok_r(data_dup, "\r\n", &ptr1);
+
+    if (request_line == NULL)
     {
-        if (data_dup[i] == '\r' && data_dup[i + 1] == '\n' && 
-            data_dup[i + 2] == '\r' && data_dup[i + 3] == '\n') {
-            data_dup[i + 2] = '#';
-            found_boundary = 1;
-            break;
-        }
-        else if (data_dup[i] == '\n' && data_dup[i + 1] == '\n') {
-            data_dup[i + 1] = '#';
-            found_boundary = 1;
-            break;
+        request_line = strtok_r(data_dup, "\n", &ptr1);
+
+        if (request_line == NULL)
+        {
+            free(data_dup);
+            return result;
         }
     }
 
-    char* request_line = strtok(data_dup, "\r\n");
-    if (request_line == NULL) {
+    char* req_line_ptr;
+
+    char* method_str = strtok_r(request_line, " ", &req_line_ptr);
+
+    if (method_str == NULL)
+    {
         free(data_dup);
         return result;
     }
 
-    char* method_str = strtok(request_line, " ");
-    if (method_str == NULL) {
-        free(data_dup);
-        return result;
-    }
-    
     result.method = method_comparor(method_str);
 
-    char* uri = strtok(NULL, " ");
-    if (uri != NULL) {
+    char* uri = strtok_r(NULL, " ", &req_line_ptr);
+
+    if (uri != NULL)
+    {
         result.URI = strdup(uri);
     }
 
-    char* http_version = strtok(NULL, " ");
-    if (http_version != NULL) {
-        char* version_num = strchr(http_version, '/');
-        if (version_num != NULL) {
-            result.http_version = atof(version_num + 1);
+    char* http_version = strtok_r(NULL, " ", &req_line_ptr);
+
+    if (http_version != NULL)
+    {
+        char* ver_num = strchr(http_version, '/');
+
+        if (ver_num != NULL)
+        {
+            result.http_version = atof(ver_num + 1);
         }
     }
 
-    char* headers = strtok(NULL, "#");
-    if (headers != NULL) {
-        result.headers = strdup(headers);
+    char* headers_start = data;
+
+    headers_start = strstr(headers_start, request_line);
+
+    if (headers_start)
+    {
+        headers_start += strlen(request_line);
+
+        printf("Headers Start: %s\n", headers_start);
+
+        if (*headers_start == '\r' && *(headers_start + 1) == '\n')
+        {
+            headers_start += 2;
+        } else if (*headers_start == '\n')
+        {
+            headers_start += 1;
+        }
+
+    } else
+    {
+        free(data_dup);
+        return result;
     }
 
-    char* body = strtok(NULL, "");
-    if (body != NULL) {
-        result.request_body = strdup(body);
+    char* body_start = NULL;
+
+    char* crlf_x_2 = strstr(headers_start, "\r\n\r\n");
+
+    if (crlf_x_2)
+    {
+        body_start = crlf_x_2 + 4;
+
+        *crlf_x_2 = '\0';
+
+        if (strlen(headers_start) > 0)
+        {
+            result.headers = strdup(headers_start);
+        }
+
+        *crlf_x_2 = '\r';
+    } else 
+    {
+        char* lf_x_2 = strstr(headers_start, "\n\n");
+
+        if (lf_x_2)
+        {
+            body_start = lf_x_2 + 2;
+
+            *lf_x_2 = '\0';
+
+            if (strlen(headers_start) > 0)
+            {
+                result.headers = strdup(headers_start);
+            }
+
+            *lf_x_2 = '\n';
+        } else 
+        {
+            if (strlen(headers_start) > 0)
+            {
+                result.headers = strdup(headers_start);
+            }
+        }
+    }
+
+    if (body_start && *body_start != '\0')
+    {
+        result.request_body = strdup(body_start);
     }
 
     free(data_dup);
-
     return result;
 }

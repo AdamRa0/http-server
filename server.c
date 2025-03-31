@@ -69,7 +69,6 @@ int main(int argc, char* argv[])
             printf("Client message: %s\n", buffer);
 
             HTTPParserResult result = request_parser(buffer);
-            printf("%s\n", result.method);
         } 
         
         else if (read_bytes == 0)
