@@ -1,5 +1,5 @@
-#ifndef http_req_parser_h
-#define http_req_parser_h
+#ifndef HTTP_REQ_PARSER_H
+#define HTTP_REQ_PARSER_H
 
 enum HTTPMethods {
     GET,
