@@ -1,0 +1,40 @@
+#include "stdio.h"
+#include "linked_list.h"
+
+void insert(BucketNode* node, LinkedList* data_structure)
+{
+    if (data_structure->head == NULL)
+    {
+        data_structure->head = node;
+        return;
+    }
+    
+    BucketNode* current_node = data_structure->head;
+
+    while (current_node->p_next != NULL)
+    {
+        current_node = current_node->p_next;
+    }
+
+    current_node->p_next = node;
+}
+
+BucketNode* find(char* key, LinkedList* data_structure)
+{
+    if (data_structure->head->key == key)
+    {
+        return data_structure->head;
+    }
+
+    BucketNode* current_node = data_structure->head;
+
+    while (current_node->p_next != NULL)
+    {
+        if (current_node->key == key)
+        {
+            return current_node;
+        }
+    }
+
+    return NULL;
+}

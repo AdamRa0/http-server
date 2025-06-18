@@ -5,7 +5,7 @@ typedef struct BucketNode
 {
     char* key;
     char* value;
-    BucketNode* next;
+    BucketNode* p_next;
 } BucketNode
 
 typedef struct LinkedList
@@ -13,8 +13,8 @@ typedef struct LinkedList
     BucketNode* head; 
 } LinkedList;
 
-void insert(BucketNode node);
+void insert(BucketNode* node, LinkedList* data_structure);
 
-BucketNode find(char* key);
+BucketNode* find(char* key, LinkedList* data_structure);
 
 #endif
