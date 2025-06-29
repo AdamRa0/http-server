@@ -1,6 +1,8 @@
 #include "stdio.h"
 #include "linked_list.h"
 
+#include <string.h>
+
 void insert(BucketNode* node, LinkedList* data_structure)
 {
     if (data_structure->head == NULL)
@@ -21,7 +23,12 @@ void insert(BucketNode* node, LinkedList* data_structure)
 
 BucketNode* find(char* key, LinkedList* data_structure)
 {
-    if (data_structure->head->key == key)
+    if (data_structure->head == NULL)
+    {
+        return NULL;
+    }
+
+    if (strcmp(data_structure->head->key, key) == 0)
     {
         return data_structure->head;
     }
@@ -30,10 +37,12 @@ BucketNode* find(char* key, LinkedList* data_structure)
 
     while (current_node->p_next != NULL)
     {
-        if (current_node->key == key)
+        if (strcmp(current_node->key, key) == 0)
         {
             return current_node;
         }
+
+        current_node = current_node->p_next;
     }
 
     return NULL;

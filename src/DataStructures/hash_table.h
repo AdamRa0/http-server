@@ -16,7 +16,7 @@ void init_hash_table(HashTable* dictionary);
 
 void insert_to_bucket(BucketNode* node, HashTable* dictionary);
 
-BucketNode* find_in_bucket(char* key, int index, HashTable* dictionary);
+BucketNode* find_in_bucket(char* key, HashTable* dictionary);
 
 unsigned int hash(char* str);
 

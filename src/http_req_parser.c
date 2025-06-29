@@ -1,5 +1,6 @@
+#include "stdio.h"
 #include "http_req_parser.h"
-#include "hash_table.h"
+#include "DataStructures/hash_table.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,19 +58,15 @@ void parse_headers(char* headers)
 
     init_hash_table(&header_dictionary);
 
-    size_t size_of_headers = sizeof(headers);
-
     char* headers_dup = strdup(headers);
-
-    headers_dup[size_of_headers - 1] = '\0'; // Null terminate string of headers
 
     char* p_header_line;
 
-    char* line = strtok_r(headers_dup, '\r\n', &p_headers_line);
+    char* line = strtok_r(headers_dup, "\r\n", &p_header_line);
 
     if (line == NULL)
     {
-        line = strtok_r(headers_dup, '\n', &p_headers_line);
+        line = strtok_r(headers_dup, "\n", &p_header_line);
 
         if (line == NULL)
         {
@@ -81,7 +78,7 @@ void parse_headers(char* headers)
 
     while (line != NULL)
     {
-        char line_delim = ': ';
+        char* line_delim = ": ";
 
         char* delim_pos = strstr(line, line_delim);
 
@@ -95,13 +92,13 @@ void parse_headers(char* headers)
         node->key = header_name;
         node->value = header_value;
 
-        insert_to_bucket(&node, &header_dictionary);
+        insert_to_bucket(node, &header_dictionary);
         
-        line = strtok_r(NULL, '\r\n', &p_headers_line);
+        line = strtok_r(NULL, "\r\n", &p_header_line);
 
         if (line == NULL)
         {
-            line = strtok_r(NULL, '\n', &p_headers_line);
+            line = strtok_r(NULL, "\n", &p_header_line);
         }
     }
 }
