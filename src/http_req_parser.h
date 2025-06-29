@@ -17,10 +17,12 @@ typedef struct HTTPParserResult{
     enum HTTPMethods method;
     char* URI;
     float http_version;
-    char* headers; // TODO: Convert this to dictionary
-    char* request_body; // TODO: Also convert this to dictionary
+    char* headers;
+    char* request_body;
 } HTTPParserResult;
 
 HTTPParserResult request_parser(char* data);
+
+void parse_headers(char* headers);
 
 #endif

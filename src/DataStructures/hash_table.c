@@ -24,7 +24,7 @@ unsigned int hash(char* str)
     return hash;
 }
 
-int insert_to_bucket(BucketNode* node, HashTable* dictionary)
+void insert_to_bucket(BucketNode* node, HashTable* dictionary)
 {
     char* key = node->key;
     
@@ -39,12 +39,12 @@ int insert_to_bucket(BucketNode* node, HashTable* dictionary)
     {
         insert(node, bucket);
     }
-
-    return index;
 }
 
-BucketNode* find_in_bucket(char* key, int index, HashTable* dictionary)
+BucketNode* find_in_bucket(char* key, HashTable* dictionary)
 {
+    int index = hash(key) % HASH_TABLE_SIZE;
+
     LinkedList* bucket = &dictionary->buckets[index];
 
     BucketNode* node = find(key, bucket);

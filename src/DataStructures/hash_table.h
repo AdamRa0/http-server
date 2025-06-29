@@ -14,7 +14,7 @@ struct HashTable
 
 void init_hash_table(HashTable* dictionary);
 
-int insert_to_bucket(BucketNode* node, HashTable* dictionary);
+void insert_to_bucket(BucketNode* node, HashTable* dictionary);
 
 BucketNode* find_in_bucket(char* key, int index, HashTable* dictionary);
 

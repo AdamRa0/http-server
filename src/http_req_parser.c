@@ -1,4 +1,5 @@
 #include "http_req_parser.h"
+#include "hash_table.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -49,6 +50,62 @@ enum HTTPMethods method_comparor(char* method)
         return HEAD;
     }
 }
+
+void parse_headers(char* headers)
+{
+    HashTable header_dictionary; // Header data store
+
+    init_hash_table(&header_dictionary);
+
+    size_t size_of_headers = sizeof(headers);
+
+    char* headers_dup = strdup(headers);
+
+    headers_dup[size_of_headers - 1] = '\0'; // Null terminate string of headers
+
+    char* p_header_line;
+
+    char* line = strtok_r(headers_dup, '\r\n', &p_headers_line);
+
+    if (line == NULL)
+    {
+        line = strtok_r(headers_dup, '\n', &p_headers_line);
+
+        if (line == NULL)
+        {
+            free(headers_dup);
+            headers_dup = NULL;
+            return;
+        }
+    }
+
+    while (line != NULL)
+    {
+        char line_delim = ': ';
+
+        char* delim_pos = strstr(line, line_delim);
+
+        *delim_pos = '\0';
+        
+        char* header_name = line;
+        char* header_value = delim_pos + 2;
+
+        BucketNode* node = (BucketNode* ) malloc(sizeof(BucketNode));
+
+        node->key = header_name;
+        node->value = header_value;
+
+        insert_to_bucket(&node, &header_dictionary);
+        
+        line = strtok_r(NULL, '\r\n', &p_headers_line);
+
+        if (line == NULL)
+        {
+            line = strtok_r(NULL, '\n', &p_headers_line);
+        }
+    }
+}
+
 
 HTTPParserResult request_parser(char* data) 
 {
@@ -141,6 +198,7 @@ HTTPParserResult request_parser(char* data)
         if (strlen(headers_start) > 0)
         {
             result.headers = strdup(headers_start);
+            parse_headers(result.headers);
         }
 
         *crlf_x_2 = '\r';
