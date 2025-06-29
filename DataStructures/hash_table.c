@@ -1,11 +1,14 @@
 #include "stdio.h"
+#include <string.h>
+
+#include "hash_table.h"
 #include "linked_list.h"
 
 #define MAGIC_NUMBER 5381
 
 void init_hash_table(HashTable* dictionary)
 {
-    memset(dictionary->pot, 0, sizeof(dictionary->pot));
+    memset(dictionary->buckets, 0, sizeof(dictionary->buckets));
 }
 
 unsigned int hash(char* str)
@@ -18,7 +21,7 @@ unsigned int hash(char* str)
         hash = ((MAGIC_NUMBER << 5) + MAGIC_NUMBER) + c;
     }
 
-    return hash
+    return hash;
 }
 
 int insert_to_bucket(BucketNode* node, HashTable* dictionary)

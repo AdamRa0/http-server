@@ -5,12 +5,14 @@
 
 #define HASH_TABLE_SIZE 100
 
-typedef struct HashTable
+typedef struct HashTable HashTable;
+
+struct HashTable
 {
     LinkedList buckets[HASH_TABLE_SIZE];
-} HashTable;
+};
 
-void init_hash_table();
+void init_hash_table(HashTable* dictionary);
 
 int insert_to_bucket(BucketNode* node, HashTable* dictionary);
 
