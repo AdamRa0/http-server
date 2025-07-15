@@ -16,7 +16,7 @@ unsigned int hash(char* str)
     unsigned int hash;
     int c;
 
-    while (c = *str++)
+    while ((c = *str++))
     {
         hash = ((MAGIC_NUMBER << 5) + MAGIC_NUMBER) + c;
     }

@@ -10,7 +10,8 @@ enum HTTPMethods {
     OPTIONS,
     TRACE,
     CONNECT,
-    HEAD
+    HEAD,
+    NONE
 };
 
 typedef struct HTTPParserResult{
@@ -22,7 +23,5 @@ typedef struct HTTPParserResult{
 } HTTPParserResult;
 
 HTTPParserResult request_parser(char* data);
-
-void parse_headers(char* headers);
 
 #endif

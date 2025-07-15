@@ -1,6 +1,7 @@
 #include "stdio.h"
+#include "headers.h"
 #include "http_req_parser.h"
-#include "DataStructures/hash_table.h"
+#include "../DataStructures/hash_table.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,98 +12,51 @@ enum HTTPMethods method_comparor(char* method)
         return GET;
     }
 
-    if (strcmp(method, "POST") == 0)
+    else if (strcmp(method, "POST") == 0)
     {
         return POST;
     }
 
-    if (strcmp(method, "PUT") == 0)
+    else if (strcmp(method, "PUT") == 0)
     {
         return PUT;
     }
 
-    if (strcmp(method, "PATCH") == 0)
+    else if (strcmp(method, "PATCH") == 0)
     {
         return PATCH;
     }
 
-    if (strcmp(method, "DELETE") == 0)
+    else if (strcmp(method, "DELETE") == 0)
     {
         return DELETE;
     }
 
-    if (strcmp(method, "OPTIONS") == 0)
+    else if (strcmp(method, "OPTIONS") == 0)
     {
         return OPTIONS;
     }
 
-    if (strcmp(method, "TRACE") == 0)
+    else if (strcmp(method, "TRACE") == 0)
     {
         return TRACE;
     }
 
-    if (strcmp(method, "CONNECT") == 0)
+    else if (strcmp(method, "CONNECT") == 0)
     {
         return CONNECT;
     }
 
-    if (strcmp(method, "HEAD") == 0)
+    else if (strcmp(method, "HEAD") == 0)
     {
         return HEAD;
     }
-}
 
-void parse_headers(char* headers)
-{
-    HashTable header_dictionary; // Header data store
-
-    init_hash_table(&header_dictionary);
-
-    char* headers_dup = strdup(headers);
-
-    char* p_header_line;
-
-    char* line = strtok_r(headers_dup, "\r\n", &p_header_line);
-
-    if (line == NULL)
+    else
     {
-        line = strtok_r(headers_dup, "\n", &p_header_line);
-
-        if (line == NULL)
-        {
-            free(headers_dup);
-            headers_dup = NULL;
-            return;
-        }
-    }
-
-    while (line != NULL)
-    {
-        char* line_delim = ": ";
-
-        char* delim_pos = strstr(line, line_delim);
-
-        *delim_pos = '\0';
-        
-        char* header_name = line;
-        char* header_value = delim_pos + 2;
-
-        BucketNode* node = (BucketNode* ) malloc(sizeof(BucketNode));
-
-        node->key = header_name;
-        node->value = header_value;
-
-        insert_to_bucket(node, &header_dictionary);
-        
-        line = strtok_r(NULL, "\r\n", &p_header_line);
-
-        if (line == NULL)
-        {
-            line = strtok_r(NULL, "\n", &p_header_line);
-        }
+        return NONE;
     }
 }
-
 
 HTTPParserResult request_parser(char* data) 
 {
