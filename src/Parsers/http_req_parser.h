@@ -14,12 +14,19 @@ enum HTTPMethods {
     NONE
 };
 
+enum ConnectionStatus {
+    KEEP_ALIVE,
+    CLOSE,
+};
+
 typedef struct HTTPParserResult{
     enum HTTPMethods method;
-    char* URI;
+    enum ConnectionStatus connection_status;
     float http_version;
+    char* URI;
     char* headers;
     char* request_body;
+    char* response_body;
 } HTTPParserResult;
 
 HTTPParserResult request_parser(char* data);

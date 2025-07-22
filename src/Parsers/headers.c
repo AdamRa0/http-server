@@ -1,10 +1,11 @@
 #include "../DataStructures/hash_table.h"
 #include "../DataStructures/linked_list.h"
 #include "headers.h"
+#include "http_req_parser.h"
 #include <stdlib.h>
 #include <string.h>
 
-HashTable header_dictionary; // Header data store
+HashTable header_dictionary;
 static bool initialized = false;
 
 HashTable* provide_hash_table()
@@ -76,4 +77,17 @@ void parse_headers(char* headers)
 
     free(headers_dup);
     headers_dup = NULL;
+}
+
+void set_connection_status(HTTPParserResult* parser_struct)
+{
+    char* connection_status = get_header_value("Connection");
+
+    if ((strcmp(connection_status, "keep-alive") == 0))
+    {
+        parser_struct->connection_status = KEEP_ALIVE;
+    } else
+    {
+        parser_struct->connection_status = CLOSE;
+    }
 }

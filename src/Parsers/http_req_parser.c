@@ -1,4 +1,5 @@
 #include "stdio.h"
+#include "body_parser.h"
 #include "headers.h"
 #include "http_req_parser.h"
 #include "../DataStructures/hash_table.h"
@@ -166,6 +167,7 @@ HTTPParserResult request_parser(char* data)
             if (strlen(headers_start) > 0)
             {
                 result.headers = strdup(headers_start);
+                parse_headers(result.headers);
             }
 
             *lf_x_2 = '\n';
@@ -174,6 +176,7 @@ HTTPParserResult request_parser(char* data)
             if (strlen(headers_start) > 0)
             {
                 result.headers = strdup(headers_start);
+                parse_headers(result.headers);
             }
         }
     }
@@ -181,7 +184,11 @@ HTTPParserResult request_parser(char* data)
     if (body_start && *body_start != '\0')
     {
         result.request_body = strdup(body_start);
+        parse_body(result.request_body, &result);
     }
+
+    // set connection status
+    set_connection_status(&result);
 
     free(data_dup);
     return result;

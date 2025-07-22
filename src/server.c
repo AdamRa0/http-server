@@ -51,6 +51,8 @@ int main(int argc, char* argv[])
         struct sockaddr_in6 client_addr;
         socklen_t client_addr_len = sizeof(client_addr);
 
+        enum ConnectionStatus client_connection_status;
+
         int accepted_conn = accept(socket_fd, (struct sockaddr*)&client_addr, &client_addr_len);
 
         if (accepted_conn < 0) 
