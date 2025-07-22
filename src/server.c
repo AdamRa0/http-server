@@ -71,6 +71,7 @@ int main(int argc, char* argv[])
             printf("Client message: %s\n", buffer);
 
             HTTPParserResult result = request_parser(buffer);
+            client_connection_status = result.connection_status;
         } 
         
         else if (read_bytes == 0)
@@ -87,7 +88,10 @@ int main(int argc, char* argv[])
 
         write(accepted_conn, response, strlen(response));
         
-        close(accepted_conn);
+        if (client_connection_status != KEEP_ALIVE)
+        {
+            close(accepted_conn);
+        }
     }
 
     close(socket_fd);

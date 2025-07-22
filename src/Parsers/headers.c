@@ -83,7 +83,7 @@ void set_connection_status(HTTPParserResult* parser_struct)
 {
     char* connection_status = get_header_value("Connection");
 
-    if ((strcmp(connection_status, "keep-alive") == 0))
+    if (connection_status != NULL && (strcmp(connection_status, "keep-alive") == 0))
     {
         parser_struct->connection_status = KEEP_ALIVE;
     } else
