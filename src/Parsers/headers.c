@@ -24,7 +24,7 @@ char* get_header_value(char* key)
 
     BucketNode* h_node = find_in_bucket(key, h_dict);
 
-    return h_node->value;
+    return h_node != NULL ? h_node->value : NULL;
 }
 
 void parse_headers(char* headers)
