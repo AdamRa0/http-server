@@ -4,6 +4,7 @@
 #include "headers.h"
 #include "http_req_parser.h"
 
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
@@ -58,9 +59,78 @@ bool multipart_form_data_valid(char* data)
     
 }
 
-bool url_encoded_form_valid(char* data)
-{
+bool is_valid_form_char(char c) {
+    return isalnum(c) || 
+           c == '%' || c == '+' || c == '=' || c == '&' || 
+           c == '-' || c == '_' || c == '.' || c == '~' ||
+           c == ':' || c == '/' || c == '?' || c == '#' ||
+           c == '[' || c == ']' || c == '@' || c == '!' ||
+           c == '$' || c == '\'' || c == '(' || c == ')' ||
+           c == '*' || c == ',' || c == ';';
+}
 
+bool is_valid_percent_encoding(const char* data, size_t pos, size_t length) {
+    if (pos + 2 >= length) return false;
+    
+    return isxdigit(data[pos + 1]) && isxdigit(data[pos + 2]);
+}
+
+bool url_encoded_form_valid(char* data) {
+    if (!data) return false;
+
+    size_t length = strlen(data);
+    
+    if (length == 0) return true;
+    
+    bool expecting_key = true;
+    bool found_equals = false;
+    size_t key_length = 0;
+    
+    for (size_t i = 0; i < length; i++) {
+        char c = data[i];
+        
+        if (!is_valid_form_char(c)) {
+            return false;
+        }
+        
+        if (c == '%') {
+            if (!is_valid_percent_encoding(data, i, length)) {
+                return false;
+            }
+            i += 2;
+            continue;
+        }
+        
+        if (c == '=') {
+            if (!expecting_key || found_equals) {
+                return false;
+            }
+            if (key_length == 0) {
+                return false;
+            }
+            expecting_key = false;
+            found_equals = true;
+        }
+        else if (c == '&') {
+            if (expecting_key && i > 0) {
+                return false;
+            }
+            expecting_key = true;
+            found_equals = false;
+            key_length = 0;
+        }
+        else {
+            if (expecting_key) {
+                key_length++;
+            }
+        }
+    }
+    
+    if (expecting_key && length > 0) {
+        return false;
+    }
+    
+    return true;
 }
 
 /*
@@ -91,6 +161,7 @@ void body_checker(char* request_body, char* body_type, char* body_length)
                 if ((strcmp(body_type, supported_content_types[i]) == 0))
                 {
                     is_valid = functions[i](request_body);
+                    printf("Is valid: %d\n", is_valid);
                 }
             }
         }
