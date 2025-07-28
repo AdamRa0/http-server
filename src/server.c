@@ -70,8 +70,6 @@ int main(int argc, char* argv[])
             buffer[read_bytes] = '\0';
             printf("Client message: %s\n", buffer);
 
-            printf("Num of bytes received: %ld\n", read_bytes);
-
             HTTPParserResult result = request_parser(buffer);
             client_connection_status = result.connection_status;
         } 

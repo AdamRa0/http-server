@@ -49,7 +49,6 @@ ssize_t cast_char_to_ssize(char* value)
 
 bool json_valid(char* data)
 {
-    printf("In json valid\n");
     cJSON* json = cJSON_Parse(data);
 
     return json != NULL;
@@ -77,8 +76,6 @@ bool is_valid_percent_encoding(const char* data, size_t pos, size_t length) {
 }
 
 bool url_encoded_form_valid(char* data) {
-    printf("In url encoded validator\n");
-
     if (!data) return false;
 
     size_t length = strlen(data);
@@ -148,7 +145,6 @@ body_length: Content-Length header value
 void body_checker(char* request_body, char* body_type, char* body_length)
 {
 
-    printf("Content-Type: %s\n", body_type);
     bool is_valid = false;
 
     if (body_type != NULL && body_length != NULL && request_body != NULL)
@@ -165,7 +161,6 @@ void body_checker(char* request_body, char* body_type, char* body_length)
                 if ((strcmp(body_type, supported_content_types[i]) == 0))
                 {
                     is_valid = functions[i](request_body);
-                    printf("Is valid: %d\n", is_valid);
                 }
             }
         }
@@ -179,8 +174,6 @@ void parse_body(char* request_body, HTTPParserResult* struct_parser)
     enum HTTPMethods method = struct_parser->method;
     char* content_type = get_header_value("Content-Type");
     char* content_length = get_header_value("Content-Length");
-
-    printf("In body parser: %s\n", content_type);
 
     if (method == POST || method == PUT || method == PATCH)
     {
