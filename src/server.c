@@ -7,7 +7,7 @@
 
 #include "Parsers/http_req_parser.h"
 
-#define MAX_MESSAGE_SIZE 1024
+#define MAX_MESSAGE_SIZE 40960
 #define PORT 7000
 
 int main(int argc, char* argv[])
