@@ -12,16 +12,12 @@ void insert(BucketNode* node, LinkedList* data_structure)
         return;
     } 
 
-    // while (current_node->p_next != NULL)
-    // {
-    //     current_node = current_node->p_next;
-    // }
+    while (current_node->p_next != NULL)
+    {
+        current_node = current_node->p_next;
+    }
 
-    // current_node->p_next = node;
-
-    free(data_structure->head);
-    data_structure->head = node;
-    
+    current_node->p_next = node;    
 }
 
 BucketNode* find(char* key, LinkedList* data_structure)

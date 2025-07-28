@@ -51,7 +51,7 @@ void parse_headers(char* headers)
 
     while (line != NULL)
     {
-        char* line_delim = ": ";
+        char* line_delim = ":";
 
         char* delim_pos = strstr(line, line_delim);
 
@@ -60,15 +60,62 @@ void parse_headers(char* headers)
         char* header_name = line;
         char* header_value = delim_pos + 2;
 
-        BucketNode* node = (BucketNode* ) malloc(sizeof(BucketNode));
+        if ((header_name != NULL && strcmp(header_name, "Content-Type")==0) && header_value != NULL)
+        {
+            char* multi_param_delim = ";";
 
-        node->key = strdup(header_name);
-        node->value = strdup(header_value);
+            char* multi_param_delim_pos = strchr(header_value, multi_param_delim);
 
-        insert_to_bucket(node, h_dict);
+            // Header value not multiple parameters
+            if (multi_param_delim_pos == NULL)
+            {
+                BucketNode* node = (BucketNode* ) malloc(sizeof(BucketNode));
         
-        line = strtok_r(NULL, "\r\n", &p_header_line);
+                node->key = strdup(header_name);
+                node->value = strdup(header_value);
+        
+                insert_to_bucket(node, h_dict);
+            } else 
+            {
+                char* p_extra_params;
 
+                char* content_header_value = strtok_r(header_value, multi_param_delim, &p_extra_params);
+
+                // Insert value of content_type header
+                BucketNode* node = (BucketNode* ) malloc(sizeof(BucketNode));
+        
+                node->key = strdup(header_name);
+                node->value = strdup(content_header_value);
+        
+                insert_to_bucket(node, h_dict);
+
+                char* extra_param = strtok_r(NULL, multi_param_delim, &p_extra_params);
+
+                while (extra_param != NULL)
+                {
+                    while (*extra_param == " ") extra_param++;
+
+                    char* param_delim = "=";
+                    char* param_delim_pos = strchr(extra_param, param_delim);
+
+                    *param_delim_pos = '\0';
+
+                    char* param_name = extra_param;
+                    char* param_value = param_delim_pos + 1;
+
+                    // Insert value of extra params
+                    BucketNode* node = (BucketNode* ) malloc(sizeof(BucketNode));
+            
+                    node->key = strdup(param_name);
+                    node->value = strdup(param_delim_pos);
+            
+                    insert_to_bucket(node, h_dict);
+                }
+            }        
+        }
+
+        line = strtok_r(NULL, "\r\n", &p_header_line);
+    
         if (line == NULL)
         {
             line = strtok_r(NULL, "\n", &p_header_line);
