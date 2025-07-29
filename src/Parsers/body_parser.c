@@ -1,6 +1,7 @@
 #include "../cJSON/cJSON.h"
 
 #include "body_parser.h"
+#include "../constants.h"
 #include "headers.h"
 #include "http_req_parser.h"
 
@@ -133,18 +134,15 @@ bool url_encoded_form_valid(char* data) {
     return true;
 }
 
-/*
-Checks if request body is of requested type and appropriate length
+/**
+@brief checks if request body is of requested type and appropriate length
 
-Arguments
----------
-request_body: data from request
-body_type: Content-Type header value
-body_length: Content-Length header value
+@param request_body data from request
+@param body_type Content-Type header value
+@param body_length Content-Length header value
 */
 void body_checker(char* request_body, char* body_type, char* body_length)
 {
-
     bool is_valid = false;
 
     if (body_type != NULL && body_length != NULL && request_body != NULL)
@@ -172,8 +170,8 @@ void body_checker(char* request_body, char* body_type, char* body_length)
 void parse_body(char* request_body, HTTPParserResult* struct_parser)
 {
     enum HTTPMethods method = struct_parser->method;
-    char* content_type = get_header_value("Content-Type");
-    char* content_length = get_header_value("Content-Length");
+    char* content_type = get_header_value(CONTENT_TYPE_HEADER_NAME);
+    char* content_length = get_header_value(CONTENT_LENGTH_HEADER_NAME);
 
     if (method == POST || method == PUT || method == PATCH)
     {

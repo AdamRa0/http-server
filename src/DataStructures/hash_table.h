@@ -14,10 +14,10 @@ struct HashTable
 
 void init_hash_table(HashTable* dictionary);
 
-void insert_to_bucket(BucketNode* node, HashTable* dictionary);
+void insert_to_bucket(BucketNode* node, HashTable* dictionary, const char* entry_type);
 
-BucketNode* find_in_bucket(char* key, HashTable* dictionary);
+BucketNode* find_in_bucket(const char* key, HashTable* dictionary);
 
-unsigned int hash(char* str);
+unsigned int hash(const char* str);
 
 #endif

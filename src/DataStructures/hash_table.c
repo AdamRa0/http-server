@@ -1,6 +1,8 @@
 #include "stdio.h"
+#include <stdlib.h>
 #include <string.h>
 
+#include "../constants.h"
 #include "hash_table.h"
 #include "linked_list.h"
 
@@ -11,7 +13,7 @@ void init_hash_table(HashTable* dictionary)
     memset(dictionary->buckets, 0, sizeof(dictionary->buckets));
 }
 
-unsigned int hash(char* str)
+unsigned int hash(const char* str)
 {
     unsigned int hash;
     int c;
@@ -24,7 +26,7 @@ unsigned int hash(char* str)
     return hash;
 }
 
-void insert_to_bucket(BucketNode* node, HashTable* dictionary)
+void insert_to_bucket(BucketNode* node, HashTable* dictionary, const char* entry_type)
 {
     char* key = node->key;
     
@@ -35,13 +37,21 @@ void insert_to_bucket(BucketNode* node, HashTable* dictionary)
     if (bucket->head == NULL)
     {
         bucket->head = node;
-    } else
+        return;
+    }
+
+    if (strcmp(entry_type, ENTRY_TYPE_SINGLE) == 0)
+    {
+        free(bucket->head);
+
+        bucket->head = node;
+    } else if (strcmp(entry_type, ENTRY_TYPE_MULTI_PARAM) == 0 || strcmp(entry_type, ENTRY_TYPE_MULTI_VALUE) == 0)
     {
         insert(node, bucket);
     }
 }
 
-BucketNode* find_in_bucket(char* key, HashTable* dictionary)
+BucketNode* find_in_bucket(const char* key, HashTable* dictionary)
 {
     int index = hash(key) % HASH_TABLE_SIZE;
 

@@ -17,6 +17,6 @@ typedef struct LinkedList
 
 void insert(BucketNode* node, LinkedList* data_structure);
 
-BucketNode* find(char* key, LinkedList* data_structure);
+BucketNode* find(const char* key, LinkedList* data_structure);
 
 #endif

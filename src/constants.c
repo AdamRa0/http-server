@@ -1,0 +1,9 @@
+#include "constants.h"
+
+const char* CONNECTION_HEADER_NAME = "Connection";
+const char* CONNECTION_KEEP_ALIVE_VALUE = "keep-alive";
+const char* CONTENT_LENGTH_HEADER_NAME = "Content-Length";
+const char* CONTENT_TYPE_HEADER_NAME = "Content-Type";
+const char* ENTRY_TYPE_SINGLE = "single-value";
+const char* ENTRY_TYPE_MULTI_PARAM = "multi-param";
+const char* ENTRY_TYPE_MULTI_VALUE = "multi-value";
