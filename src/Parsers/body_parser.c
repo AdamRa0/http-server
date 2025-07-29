@@ -81,6 +81,19 @@ bool multipart_form_data_valid(char* data)
         return false;
     }
 
+    if (isspace(boundary[boundary_len - 1])) 
+    {
+        return false;
+    }
+
+    // is boundary RFC compliant
+    for (size_t i = 0; i < boundary_len; i++) {
+        unsigned char c = (unsigned char)boundary[i];
+        if (c < 32 || c == 127) { 
+            return false;
+        }
+    }
+
     // Validate request data
     char* p_line;
     char* crlf = "\r\n";
@@ -112,10 +125,10 @@ bool multipart_form_data_valid(char* data)
         if (boundary_pos != NULL)
         {
             // Check for valid boundary
-            if (strcmp(boundary_pos - 1,  "-") && strcmp(boundary_pos - 2, "-"))
+            if (strcmp(boundary_pos - 1,  "-") == 0 && strcmp(boundary_pos - 2, "-") == 0)
             {
                 // if end boundary, break out of while loop
-                if (strcmp(boundary_pos + boundary_len + 1, "-") && strcmp(boundary_pos + boundary_len + 2, "-"))
+                if (strcmp(boundary_pos + boundary_len + 1, "-") == 0 && strcmp(boundary_pos + boundary_len + 2, "-") == 0)
                 {
                     is_middle_boundary = false;
                     is_end_boundary = true;
