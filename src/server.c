@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
         if (read_bytes > 0)
         {
             buffer[read_bytes] = '\0';
+            // TODO: Remove after validation and parsing features complete
             printf("Client message: %s\n", buffer);
 
             HTTPParserResult result = request_parser(buffer);

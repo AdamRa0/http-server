@@ -3,6 +3,7 @@
 #include "../DataStructures/linked_list.h"
 #include "headers.h"
 #include "http_req_parser.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -56,7 +56,122 @@ bool json_valid(char* data)
 }
 
 bool multipart_form_data_valid(char* data)
-{
+{   
+    char* boundary = get_header_value(BOUNDARY_HEADER_PARAM);
+
+    const size_t MIN_BOUNDARY_LEN = 1;
+    const size_t MAX_BOUNDARY_LEN = 70;
+
+    static bool is_start_boundary = true;
+    static bool is_middle_boundary = false;
+    static bool is_end_boundary = false;
+    
+    // If boundary was not stored while parsing header
+    // malformed request hence not valid
+    if (boundary == NULL)
+    {
+        return false;
+    }
+
+    size_t boundary_len = strlen(boundary);
+    
+    // Validate boundary length
+    if (boundary_len < MIN_BOUNDARY_LEN || boundary_len > MAX_BOUNDARY_LEN)
+    {
+        return false;
+    }
+
+    // Validate request data
+    char* p_line;
+    char* crlf = "\r\n";
+    char* lf = "\n";
+
+
+    char* data_dup = strdup(data);
+
+    char* line = strtok_r(data_dup, "\r\n", &p_line);
+
+    if (line == NULL)
+    {
+        line = strtok_r(data_dup, "\n", &p_line);
+
+        if (line == NULL)
+        {
+            free(data_dup);
+            data_dup = NULL;
+
+            return false;
+        }
+    }
+
+    while (line != NULL)
+    {
+        char* boundary_pos = strstr(line, boundary);
+
+        // Check if boundary exists
+        if (boundary_pos != NULL)
+        {
+            // Check for valid boundary
+            if (strcmp(boundary_pos - 1,  "-") && strcmp(boundary_pos - 2, "-"))
+            {
+                // if end boundary, break out of while loop
+                if (strcmp(boundary_pos + boundary_len + 1, "-") && strcmp(boundary_pos + boundary_len + 2, "-"))
+                {
+                    is_middle_boundary = false;
+                    is_end_boundary = true;
+                    break;
+                }
+
+                // if not in start boundary, we are in middle boundary
+                if (is_start_boundary == false)
+                {
+                    is_middle_boundary = true;
+                }
+            } else
+            {
+                // Invalid boundary hence malformed request
+                return false;
+            }
+
+        }
+
+        if (boundary_pos == NULL)
+        {
+            // Check if we are at beginning of data
+            if (is_start_boundary) 
+            {
+                // we were expecting boundary at beginning of data
+                // malformed request hence not valid
+                return false;
+            }
+            else 
+            {
+                if (is_start_boundary)
+                {
+                    is_start_boundary = false;
+                }
+
+                // Check if Content-Disposition Header present
+                char* content_disposition_pos = strstr(line, CONTENT_DISPOSITION_HEADER_NAME);
+
+                if (content_disposition_pos == NULL)
+                {
+                    return false;
+                }
+            }
+        }
+
+        line = strtok_r(NULL, crlf, &p_line);
+
+        if (line == NULL)
+        {
+            line = strtok_r(NULL, lf, &p_line);
+        }
+    }
+
+    free(data_dup);
+    data_dup = NULL;
+
     return true;
 }
 
@@ -136,6 +251,7 @@ bool url_encoded_form_valid(char* data) {
 
 /**
 @brief checks if request body is of requested type and appropriate length
+@return null
 
 @param request_body data from request
 @param body_type Content-Type header value

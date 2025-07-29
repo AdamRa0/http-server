@@ -45,7 +45,7 @@ void insert_to_bucket(BucketNode* node, HashTable* dictionary, const char* entry
         free(bucket->head);
 
         bucket->head = node;
-    } else if (strcmp(entry_type, ENTRY_TYPE_MULTI_PARAM) == 0 || strcmp(entry_type, ENTRY_TYPE_MULTI_VALUE) == 0)
+    } else if (strcmp(entry_type, ENTRY_TYPE_MULTI_PARAM) == 0)
     {
         insert(node, bucket);
     }

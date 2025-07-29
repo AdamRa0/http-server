@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include "linked_list.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,8 +30,9 @@ BucketNode* find(const char* key, LinkedList* data_structure)
 
     BucketNode* current_node = data_structure->head;
 
-    while (current_node->p_next != NULL)
+    while (current_node != NULL)
     {
+        
         if (strcmp(current_node->key, key) == 0)
         {
             return current_node;
