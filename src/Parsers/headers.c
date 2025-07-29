@@ -30,7 +30,7 @@ char* get_header_value(const char* key)
 
 /**
 @brief parses multiparam, single value and multivalue headers
-@returns nothing
+@return void
 
 @param header_name Null terminated string containing header name
 @param header_value Null terminated string containing header value(s)
