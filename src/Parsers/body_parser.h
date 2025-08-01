@@ -15,16 +15,4 @@ void parse_body(char* request_body, HTTPParserResult* parser_struct);
 
 void body_checker(char* request_body, char* body_type, char* body_length);
 
-ssize_t cast_char_to_ssize(char* value);
-
-bool json_valid(char* data);
-
-bool multipart_form_data_valid(char* data);
-
-bool url_encoded_form_valid(char* data);
-
-bool is_valid_form_char(char c);
-
-bool is_valid_percent_encoding(const char* data, size_t pos, size_t length);
-
 #endif

@@ -10,7 +10,7 @@
 #define MAX_MESSAGE_SIZE 40960
 #define PORT 7000
 
-int main(int argc, char* argv[])
+int main()
 {
     struct sockaddr_in6 server_sockaddr_in;
     memset(&server_sockaddr_in, 0, sizeof(server_sockaddr_in));
