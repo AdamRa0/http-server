@@ -1,7 +1,8 @@
 #include "../cJSON/cJSON.h"
+#include "../constants.h"
+#include "Validators/validators.h"
 
 #include "body_parser.h"
-#include "../constants.h"
 #include "headers.h"
 #include "http_req_parser.h"
 
@@ -51,6 +52,7 @@ void body_checker(char* request_body, char* body_type, char* body_length)
                 if ((strcmp(body_type, supported_content_types[i]) == 0))
                 {
                     is_valid = functions[i](request_body);
+                    printf("Is valid: %d\n", is_valid);
                 }
             }
         }

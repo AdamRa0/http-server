@@ -1,26 +1,34 @@
 #ifndef VALIDATORS_H
 #define VALIDATORS_H
 
-#include "http_req_parser.h"
+#include "../http_req_parser.h"
 #include <ctype.h>
 #include <sys/types.h>
 
+typedef struct Ctx_FormDataValidator Ctx_FormDataValidator;
+
+
 typedef enum {
-    STATE_INITIAL, // State when reading data for first time
-    STATE_IN_BOUNDARY, // State when in boundary
-    STATE_IN_PART_HEADER, // State when in part header and body
-    STATE_IN_BODY, // Inside content of form
-    STATE_FINISHED // State when validation finished
+    STATE_EXPECT_BOUNDARY,      // Looking for initial or intermediate boundary
+    STATE_PARSE_HEADERS,        // Processing part headers
+    STATE_EXPECT_EMPTY_LINE,    // Must find blank line after headers
+    STATE_PARSE_BODY,          // Reading part content until next boundary
+    STATE_COMPLETE             // Found end boundary, validation complete
 } MultipartDataValidationState;
 
-typedef struct {
+struct Ctx_FormDataValidator {
     char* boundary;
+    size_t boundary_len;
     bool is_content_disposition;
     bool is_end_boundary;
     bool is_normal_boundary; // For beginning and middle boundaries
     bool is_valid_boundary;
+    bool found_empty_line;
     bool is_valid_data;
-} Ctx_FormDataValidator;
+    int segment_count;
+};
+
+bool is_empty_line(char* data);
 
 // sets is_valid_boundary member in context struct
 void is_valid_boundary(Ctx_FormDataValidator* context);
