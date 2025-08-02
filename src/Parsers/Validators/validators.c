@@ -15,8 +15,10 @@
 bool is_empty_line(char* data) {
     if (!data) return true;
 
-    while (*data) {
-        if (*data != ' ' && *data != '\t' && *data != '\r') {
+    while (*data) 
+    {
+        if (*data != ' ' && *data != '\t' && *data != '\r') 
+        {
             return false;
         }
         data++;
@@ -174,18 +176,12 @@ bool multipart_form_data_valid(char* data)
                     break;
                 }
 
-                // Check for validity and type of boundary in line
                 boundary_type(&context, line);
 
+                // If end boundary at beginning fail validation
                 if (context.is_end_boundary) 
                 {
-                    if (context.segment_count > 0) 
-                    {
-                        state = STATE_COMPLETE;
-                        context.is_valid_data = true;
-                    } else {
-                        validation_failed = true;
-                    }
+                    validation_failed = true;
                 } else if (context.is_normal_boundary) 
                 {
                     state = STATE_PARSE_HEADERS;
