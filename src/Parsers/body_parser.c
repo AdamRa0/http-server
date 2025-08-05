@@ -1,5 +1,6 @@
 #include "../cJSON/cJSON.h"
 #include "../constants.h"
+#include "../response.h"
 #include "Validators/validators.h"
 
 #include "body_parser.h"
@@ -34,7 +35,7 @@ parsing_functions functions[] = {
 @param body_type Content-Type header value
 @param body_length Content-Length header value
 */
-void body_checker(char* request_body, char* body_type, char* body_length)
+void body_checker(char* request_body, char* body_type, char* body_length, HTTPParserResult* parser_struct)
 {
     bool is_valid = false;
 
@@ -58,6 +59,12 @@ void body_checker(char* request_body, char* body_type, char* body_length)
     }
 
     // If is valid or is invalid, do something
+    if (!is_valid)
+    {
+        set_server_response(parser_struct, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+    }
+
+    set_server_response(parser_struct, OK_STATUS_CODE, OK_STATUS);
 }
 
 void parse_body(char* request_body, HTTPParserResult* struct_parser)
@@ -68,6 +75,6 @@ void parse_body(char* request_body, HTTPParserResult* struct_parser)
 
     if (method == POST || method == PUT || method == PATCH)
     {
-        body_checker(request_body, content_type, content_length);
+        body_checker(request_body, content_type, content_length, struct_parser);
     }
 }

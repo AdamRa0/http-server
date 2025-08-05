@@ -1,8 +1,11 @@
-#include "stdio.h"
 #include "body_parser.h"
 #include "headers.h"
 #include "http_req_parser.h"
+
+#include "../constants.h"
 #include "../DataStructures/hash_table.h"
+#include "../response.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -59,13 +62,12 @@ enum HTTPMethods method_comparor(char* method)
     }
 }
 
-HTTPParserResult request_parser(char* data) 
+void request_parser(char* data, HTTPParserResult* result) 
 {
-    HTTPParserResult result = {0};
-
     if (data == NULL || strlen(data) == 0)
     {
-        return result;
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+        return;
     }
 
     char* data_dup = strdup(data);
@@ -80,8 +82,10 @@ HTTPParserResult request_parser(char* data)
 
         if (request_line == NULL)
         {
+            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
             free(data_dup);
-            return result;
+            data_dup = NULL;
+            return;
         }
     }
 
@@ -91,17 +95,33 @@ HTTPParserResult request_parser(char* data)
 
     if (method_str == NULL)
     {
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
         free(data_dup);
-        return result;
+        data_dup = NULL;
+        return;
     }
 
-    result.method = method_comparor(method_str);
+    result->method = method_comparor(method_str);
+
+    if (result->method == NONE)
+    {
+        set_server_response(result, METHOD_NOT_IMPLEMENTED_STATUS_CODE, METHOD_NOT_IMPLEMENTED_STATUS);
+        free(data_dup);
+        data_dup = NULL;
+        return;
+    }
 
     char* uri = strtok_r(NULL, " ", &req_line_ptr);
 
     if (uri != NULL)
     {
-        result.URI = strdup(uri);
+        result->URI = strdup(uri);
+    } else 
+    {
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+        free(data_dup);
+        data_dup = NULL;
+        return;    
     }
 
     char* http_version = strtok_r(NULL, " ", &req_line_ptr);
@@ -112,8 +132,38 @@ HTTPParserResult request_parser(char* data)
 
         if (ver_num != NULL)
         {
-            result.http_version = atof(ver_num + 1);
+            result->http_version = atof(ver_num + 1);
+        } else 
+        {
+            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+            free(data_dup);
+            data_dup = NULL;
+            return;
         }
+    } else 
+    {
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+        free(data_dup);
+        data_dup = NULL;
+        return;
+    }
+
+    // If method == GET, set current dummy response
+    if (result->method == GET)
+    {
+        set_server_response(result, OK_STATUS_CODE, OK_STATUS);
+        free(data_dup);
+        data_dup = NULL;
+        return;
+    }
+
+    // Http version not 1.1
+    if (result->http_version != 1.1f)
+    {
+        set_server_response(result, UNSUPPORTED_HTTP_VERSION_STATUS_CODE, UNSUPPORTED_HTTP_VERSION_STATUS);
+        free(data_dup);
+        data_dup = NULL;
+        return;
     }
 
     char* headers_start = data;
@@ -132,8 +182,10 @@ HTTPParserResult request_parser(char* data)
         }
         else 
         {
+            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
             free(data_dup);
-            return result;
+            data_dup = NULL;
+            return;
         }
     }
 
@@ -149,8 +201,17 @@ HTTPParserResult request_parser(char* data)
 
         if (strlen(headers_start) > 0)
         {
-            result.headers = strdup(headers_start);
-            parse_headers(result.headers);
+
+            if (!(strstr(headers_start, "Host:")))
+            {
+                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+                free(data_dup);
+                data_dup = NULL;
+                return;
+            }
+
+            result->headers = strdup(headers_start);
+            parse_headers(result->headers);
         }
 
         *crlf_x_2 = '\r';
@@ -166,8 +227,8 @@ HTTPParserResult request_parser(char* data)
 
             if (strlen(headers_start) > 0)
             {
-                result.headers = strdup(headers_start);
-                parse_headers(result.headers);
+                result->headers = strdup(headers_start);
+                parse_headers(result->headers);
             }
 
             *lf_x_2 = '\n';
@@ -175,21 +236,21 @@ HTTPParserResult request_parser(char* data)
         {
             if (strlen(headers_start) > 0)
             {
-                result.headers = strdup(headers_start);
-                parse_headers(result.headers);
+                result->headers = strdup(headers_start);
+                parse_headers(result->headers);
             }
         }
     }
 
     if (body_start && *body_start != '\0')
     {
-        result.request_body = strdup(body_start);
-        parse_body(result.request_body, &result);
+        result->request_body = strdup(body_start);
+        parse_body(result->request_body, result);
     }
 
     // set connection status
-    set_connection_status(&result);
+    set_connection_status(result);
 
     free(data_dup);
-    return result;
+    data_dup = NULL;
 }

@@ -29,6 +29,6 @@ typedef struct HTTPParserResult{
     char* response_body;
 } HTTPParserResult;
 
-HTTPParserResult request_parser(char* data);
+void request_parser(char* data, HTTPParserResult* result);
 
 #endif

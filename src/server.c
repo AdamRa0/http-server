@@ -1,5 +1,6 @@
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -51,6 +52,8 @@ int main()
         struct sockaddr_in6 client_addr;
         socklen_t client_addr_len = sizeof(client_addr);
 
+        HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
+
         enum ConnectionStatus client_connection_status;
 
         int accepted_conn = accept(socket_fd, (struct sockaddr*)&client_addr, &client_addr_len);
@@ -71,8 +74,8 @@ int main()
             // TODO: Remove after validation and parsing features complete
             printf("Client message: %s\n", buffer);
 
-            HTTPParserResult result = request_parser(buffer);
-            client_connection_status = result.connection_status;
+            request_parser(buffer, result);
+            client_connection_status = result->connection_status;
         } 
         
         else if (read_bytes == 0)
@@ -85,12 +88,16 @@ int main()
             perror("Failed to receive message");
         }
 
-        char response[] = "Hello from server";
-
-        write(accepted_conn, response, strlen(response));
+        printf("Response: %s\n", result->response_body);
+        if (result->response_body)
+        {
+            write(accepted_conn, result->response_body, strlen(result->response_body));
+        }
         
         if (client_connection_status != KEEP_ALIVE)
         {
+            free(result);
+            result = NULL;
             close(accepted_conn);
         }
     }

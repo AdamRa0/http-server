@@ -311,7 +311,8 @@ bool is_valid_percent_encoding(const char* data, size_t pos, size_t length)
 }
 
 bool url_encoded_form_valid(char* data) 
-{
+{                // Code fails  this condition
+
     if (!data) return false;
 
     size_t length = strlen(data);
