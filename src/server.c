@@ -88,7 +88,8 @@ int main()
             perror("Failed to receive message");
         }
 
-        printf("Response: %s\n", result->response_body);
+        // TODO: Process request
+
         if (result->response_body)
         {
             write(accepted_conn, result->response_body, strlen(result->response_body));

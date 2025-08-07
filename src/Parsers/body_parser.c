@@ -1,11 +1,13 @@
 #include "../cJSON/cJSON.h"
 #include "../constants.h"
+#include "../path_builder.h"
 #include "../response.h"
-#include "Validators/validators.h"
 
 #include "body_parser.h"
 #include "headers.h"
 #include "http_req_parser.h"
+
+#include "Validators/validators.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -58,13 +60,19 @@ void body_checker(char* request_body, char* body_type, char* body_length, HTTPPa
         }
     }
 
-    // If is valid or is invalid, do something
     if (!is_valid)
     {
-        set_server_response(parser_struct, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
-    }
+        const char* filename = "400.html";
+        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
 
-    set_server_response(parser_struct, OK_STATUS_CODE, OK_STATUS);
+        set_server_response(parser_struct, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+    } else 
+    {
+        const char* filename = "index.html";
+        char* path = build_path(filename, RESPONSE_TYPE_OK);
+    
+        set_server_response(parser_struct, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK, path);
+    }
 }
 
 void parse_body(char* request_body, HTTPParserResult* struct_parser)

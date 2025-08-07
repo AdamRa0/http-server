@@ -5,6 +5,7 @@
 #define BAD_REQUEST_STATUS_CODE 400
 #define OK_STATUS_CODE 200 // Delete later
 #define METHOD_NOT_IMPLEMENTED_STATUS_CODE 501
+#define INTERNAL_SERVER_ERROR_STATUS_CODE 500
 
 extern const char* BOUNDARY_HEADER_PARAM;
 extern const char* CONNECTION_HEADER_NAME;
@@ -15,9 +16,17 @@ extern const char* CONTENT_TYPE_HEADER_NAME;
 extern const char* ENTRY_TYPE_SINGLE;
 extern const char* ENTRY_TYPE_MULTI_PARAM;
 extern const char* SERVER_ERROR_RESPONSE;
+extern const char* SERVER_OK_RESPONSE;
 extern const char* UNSUPPORTED_HTTP_VERSION_STATUS;
 extern const char* BAD_REQUEST_STATUS;
 extern const char* OK_STATUS;
 extern const char* METHOD_NOT_IMPLEMENTED_STATUS;
+extern const char* INTERNAL_SERVER_ERROR_STATUS;
+extern const char* FILE_NOT_EXISTS_ERROR;
+extern const char* FILE_PERMISSIONS_ERROR;
+extern const char* COULD_NOT_READ_FILE_ERROR;
+extern const char* UNAUTHORIZED_FILE_OPERATION_ERROR;
+extern const char* RESPONSE_TYPE_OK;
+extern const char* RESPONSE_TYPE_ERROR;
 
 #endif

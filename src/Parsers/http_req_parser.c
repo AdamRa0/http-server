@@ -4,6 +4,8 @@
 
 #include "../constants.h"
 #include "../DataStructures/hash_table.h"
+#include "../file_ops.h"
+#include "../path_builder.h"
 #include "../response.h"
 
 #include <stdlib.h>
@@ -66,7 +68,10 @@ void request_parser(char* data, HTTPParserResult* result)
 {
     if (data == NULL || strlen(data) == 0)
     {
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+        const char* filename = "400.html";
+        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
         return;
     }
 
@@ -82,7 +87,11 @@ void request_parser(char* data, HTTPParserResult* result)
 
         if (request_line == NULL)
         {
-            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+            const char* filename = "400.html";
+            char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+
             free(data_dup);
             data_dup = NULL;
             return;
@@ -95,7 +104,11 @@ void request_parser(char* data, HTTPParserResult* result)
 
     if (method_str == NULL)
     {
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+        const char* filename = "400.html";
+        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+
         free(data_dup);
         data_dup = NULL;
         return;
@@ -105,7 +118,11 @@ void request_parser(char* data, HTTPParserResult* result)
 
     if (result->method == NONE)
     {
-        set_server_response(result, METHOD_NOT_IMPLEMENTED_STATUS_CODE, METHOD_NOT_IMPLEMENTED_STATUS);
+        const char* filename = "500.html";
+        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+        set_server_response(result, INTERNAL_SERVER_ERROR_STATUS_CODE, INTERNAL_SERVER_ERROR_STATUS, RESPONSE_TYPE_ERROR, path);
+
         free(data_dup);
         data_dup = NULL;
         return;
@@ -118,7 +135,10 @@ void request_parser(char* data, HTTPParserResult* result)
         result->URI = strdup(uri);
     } else 
     {
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+        const char* filename = "400.html";
+        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
         free(data_dup);
         data_dup = NULL;
         return;    
@@ -135,14 +155,20 @@ void request_parser(char* data, HTTPParserResult* result)
             result->http_version = atof(ver_num + 1);
         } else 
         {
-            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+            const char* filename = "400.html";
+            char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
             free(data_dup);
             data_dup = NULL;
             return;
         }
     } else 
     {
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+        const char* filename = "400.html";
+        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
         free(data_dup);
         data_dup = NULL;
         return;
@@ -151,7 +177,13 @@ void request_parser(char* data, HTTPParserResult* result)
     // If method == GET, set current dummy response
     if (result->method == GET)
     {
-        set_server_response(result, OK_STATUS_CODE, OK_STATUS);
+
+        char* uri = result->URI;
+
+        const char* filename = "index.html";
+        char* path = build_path(filename, RESPONSE_TYPE_OK);
+
+        set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK, path);
         free(data_dup);
         data_dup = NULL;
         return;
@@ -160,7 +192,10 @@ void request_parser(char* data, HTTPParserResult* result)
     // Http version not 1.1
     if (result->http_version != 1.1f)
     {
-        set_server_response(result, UNSUPPORTED_HTTP_VERSION_STATUS_CODE, UNSUPPORTED_HTTP_VERSION_STATUS);
+        const char* filename = "500.html";
+        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+        set_server_response(result, INTERNAL_SERVER_ERROR_STATUS_CODE, INTERNAL_SERVER_ERROR_STATUS, RESPONSE_TYPE_ERROR, path);
         free(data_dup);
         data_dup = NULL;
         return;
@@ -182,7 +217,10 @@ void request_parser(char* data, HTTPParserResult* result)
         }
         else 
         {
-            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+            const char* filename = "400.html";
+            char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
             free(data_dup);
             data_dup = NULL;
             return;
@@ -204,7 +242,10 @@ void request_parser(char* data, HTTPParserResult* result)
 
             if (!(strstr(headers_start, "Host:")))
             {
-                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS);
+                const char* filename = "400.html";
+                char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+
+                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
                 free(data_dup);
                 data_dup = NULL;
                 return;
@@ -245,6 +286,7 @@ void request_parser(char* data, HTTPParserResult* result)
     if (body_start && *body_start != '\0')
     {
         result->request_body = strdup(body_start);
+        // Method will be part of request processor
         parse_body(result->request_body, result);
     }
 

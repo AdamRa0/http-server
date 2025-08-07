@@ -287,9 +287,17 @@ ssize_t cast_char_to_ssize(char* value)
 
 bool json_valid(char* data)
 {
+    bool is_json_valid = false;
+
     cJSON* json = cJSON_Parse(data);
 
-    return json != NULL;
+    if (json != NULL)
+    {
+        is_json_valid = true;
+        cJSON_Delete(json);
+    }
+
+    return is_json_valid;
 }
 
 bool is_valid_form_char(char c) 
