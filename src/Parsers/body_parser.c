@@ -1,7 +1,7 @@
 #include "../cJSON/cJSON.h"
 #include "../constants.h"
 #include "../path_builder.h"
-#include "../response.h"
+#include "../Handlers/response_handler.h"
 
 #include "body_parser.h"
 #include "headers.h"

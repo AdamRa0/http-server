@@ -6,7 +6,7 @@
 #include "../DataStructures/hash_table.h"
 #include "../file_ops.h"
 #include "../path_builder.h"
-#include "../response.h"
+#include "../Handlers/response_handler.h"
 
 #include <stdlib.h>
 #include <string.h>
