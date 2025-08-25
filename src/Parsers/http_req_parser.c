@@ -1,12 +1,11 @@
-#include "body_parser.h"
-#include "headers.h"
 #include "http_req_parser.h"
 
 #include "../constants.h"
 #include "../DataStructures/hash_table.h"
-#include "../file_ops.h"
 #include "../path_builder.h"
+#include "../Handlers/file_handler.h"
 #include "../Handlers/response_handler.h"
+#include "../Handlers/request_handler.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -116,18 +115,6 @@ void request_parser(char* data, HTTPParserResult* result)
 
     result->method = method_comparor(method_str);
 
-    if (result->method == NONE)
-    {
-        const char* filename = "500.html";
-        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-        set_server_response(result, INTERNAL_SERVER_ERROR_STATUS_CODE, INTERNAL_SERVER_ERROR_STATUS, RESPONSE_TYPE_ERROR, path);
-
-        free(data_dup);
-        data_dup = NULL;
-        return;
-    }
-
     char* uri = strtok_r(NULL, " ", &req_line_ptr);
 
     if (uri != NULL)
@@ -169,21 +156,6 @@ void request_parser(char* data, HTTPParserResult* result)
         char* path = build_path(filename, RESPONSE_TYPE_ERROR);
 
         set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
-        free(data_dup);
-        data_dup = NULL;
-        return;
-    }
-
-    // If method == GET, set current dummy response
-    if (result->method == GET)
-    {
-
-        char* uri = result->URI;
-
-        const char* filename = "index.html";
-        char* path = build_path(filename, RESPONSE_TYPE_OK);
-
-        set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK, path);
         free(data_dup);
         data_dup = NULL;
         return;
@@ -252,7 +224,6 @@ void request_parser(char* data, HTTPParserResult* result)
             }
 
             result->headers = strdup(headers_start);
-            parse_headers(result->headers);
         }
 
         *crlf_x_2 = '\r';
@@ -269,7 +240,6 @@ void request_parser(char* data, HTTPParserResult* result)
             if (strlen(headers_start) > 0)
             {
                 result->headers = strdup(headers_start);
-                parse_headers(result->headers);
             }
 
             *lf_x_2 = '\n';
@@ -278,7 +248,6 @@ void request_parser(char* data, HTTPParserResult* result)
             if (strlen(headers_start) > 0)
             {
                 result->headers = strdup(headers_start);
-                parse_headers(result->headers);
             }
         }
     }
@@ -286,12 +255,10 @@ void request_parser(char* data, HTTPParserResult* result)
     if (body_start && *body_start != '\0')
     {
         result->request_body = strdup(body_start);
-        // Method will be part of request processor
-        parse_body(result->request_body, result);
     }
 
     // set connection status
-    set_connection_status(result);
+    handle_request(result);
 
     free(data_dup);
     data_dup = NULL;

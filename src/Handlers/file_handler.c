@@ -1,5 +1,5 @@
-#include "constants.h"
-#include "file_ops.h"
+#include "../constants.h"
+#include "file_handler.h"
 
 #include <ctype.h>
 #include <errno.h>
