@@ -1,7 +1,6 @@
-#include "../cJSON/cJSON.h"
 #include "../constants.h"
-#include "../path_builder.h"
-#include "../Handlers/response_handler.h"
+#include "../cJSON/cJSON.h"
+#include "../Handlers/error_handler.h"
 
 #include "body_parser.h"
 #include "headers.h"
@@ -62,16 +61,7 @@ void body_checker(char* request_body, char* body_type, char* body_length, HTTPPa
 
     if (!is_valid)
     {
-        const char* filename = "400.html";
-        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-        set_server_response(parser_struct, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
-    } else 
-    {
-        const char* filename = "index.html";
-        char* path = build_path(filename, RESPONSE_TYPE_OK);
-    
-        set_server_response(parser_struct, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK, path);
+        bad_request_handler(parser_struct);
     }
 }
 

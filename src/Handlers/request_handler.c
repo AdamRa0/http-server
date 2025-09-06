@@ -1,4 +1,6 @@
+#include "error_handler.h"
 #include "response_handler.h"
+
 #include "../path_builder.h"
 #include "../constants.h"
 #include "../Parsers/body_parser.h"
@@ -13,10 +15,7 @@ void handle_request(HTTPParserResult* result)
         case PATCH:
             if (!result->request_body)
             {
-                const char* filename = "400.html";
-                char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+                bad_request_handler(result);
                 break;
             }
             parse_headers(result->headers);
@@ -26,10 +25,7 @@ void handle_request(HTTPParserResult* result)
         case PUT:
             if (!result->request_body)
             {
-                const char* filename = "400.html";
-                char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+                bad_request_handler(result);
                 break;
             }
             parse_headers(result->headers);
@@ -39,10 +35,7 @@ void handle_request(HTTPParserResult* result)
         case POST:
             if (!result->request_body)
             {
-                const char* filename = "400.html";
-                char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+                bad_request_handler(result);
                 break;
             }
             parse_headers(result->headers);
@@ -52,10 +45,7 @@ void handle_request(HTTPParserResult* result)
         case DELETE:
             if (result->request_body)
             {
-                const char* filename = "400.html";
-                char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+                bad_request_handler(result);
             }
             parse_headers(result->headers);
             set_connection_status(result);
@@ -64,10 +54,7 @@ void handle_request(HTTPParserResult* result)
 
             if (result->request_body)
             {
-                const char* filename = "400.html";
-                char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+                bad_request_handler(result);
                 break;
             }
 
@@ -81,10 +68,7 @@ void handle_request(HTTPParserResult* result)
             set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK, index_path);
             break;
         case NONE:
-            const char* filename_internal_error = "500.html";
-            char* internal_error_path = build_path(filename_internal_error, RESPONSE_TYPE_ERROR);
-
-            set_server_response(result, INTERNAL_SERVER_ERROR_STATUS_CODE, INTERNAL_SERVER_ERROR_STATUS, RESPONSE_TYPE_ERROR, internal_error_path);
+            server_error_handler(result);
             break;
         default:
             break;

@@ -1,10 +1,6 @@
 #include "http_req_parser.h"
 
-#include "../constants.h"
-#include "../DataStructures/hash_table.h"
-#include "../path_builder.h"
-#include "../Handlers/file_handler.h"
-#include "../Handlers/response_handler.h"
+#include "../Handlers/error_handler.h"
 #include "../Handlers/request_handler.h"
 
 #include <stdlib.h>
@@ -67,10 +63,7 @@ void request_parser(char* data, HTTPParserResult* result)
 {
     if (data == NULL || strlen(data) == 0)
     {
-        const char* filename = "400.html";
-        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+        bad_request_handler(result);
         return;
     }
 
@@ -86,10 +79,7 @@ void request_parser(char* data, HTTPParserResult* result)
 
         if (request_line == NULL)
         {
-            const char* filename = "400.html";
-            char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+            bad_request_handler(result);
 
             free(data_dup);
             data_dup = NULL;
@@ -103,10 +93,7 @@ void request_parser(char* data, HTTPParserResult* result)
 
     if (method_str == NULL)
     {
-        const char* filename = "400.html";
-        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
-
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
+        bad_request_handler(result);
 
         free(data_dup);
         data_dup = NULL;
@@ -122,10 +109,8 @@ void request_parser(char* data, HTTPParserResult* result)
         result->URI = strdup(uri);
     } else 
     {
-        const char* filename = "400.html";
-        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+        bad_request_handler(result);
 
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
         free(data_dup);
         data_dup = NULL;
         return;    
@@ -142,20 +127,16 @@ void request_parser(char* data, HTTPParserResult* result)
             result->http_version = atof(ver_num + 1);
         } else 
         {
-            const char* filename = "400.html";
-            char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+            bad_request_handler(result);
 
-            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
             free(data_dup);
             data_dup = NULL;
             return;
         }
     } else 
     {
-        const char* filename = "400.html";
-        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+        bad_request_handler(result);
 
-        set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
         free(data_dup);
         data_dup = NULL;
         return;
@@ -164,10 +145,8 @@ void request_parser(char* data, HTTPParserResult* result)
     // Http version not 1.1
     if (result->http_version != 1.1f)
     {
-        const char* filename = "500.html";
-        char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+        server_error_handler(result);
 
-        set_server_response(result, INTERNAL_SERVER_ERROR_STATUS_CODE, INTERNAL_SERVER_ERROR_STATUS, RESPONSE_TYPE_ERROR, path);
         free(data_dup);
         data_dup = NULL;
         return;
@@ -189,10 +168,8 @@ void request_parser(char* data, HTTPParserResult* result)
         }
         else 
         {
-            const char* filename = "400.html";
-            char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+            bad_request_handler(result);
 
-            set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
             free(data_dup);
             data_dup = NULL;
             return;
@@ -214,10 +191,8 @@ void request_parser(char* data, HTTPParserResult* result)
 
             if (!(strstr(headers_start, "Host:")))
             {
-                const char* filename = "400.html";
-                char* path = build_path(filename, RESPONSE_TYPE_ERROR);
+                bad_request_handler(result);
 
-                set_server_response(result, BAD_REQUEST_STATUS_CODE, BAD_REQUEST_STATUS, RESPONSE_TYPE_ERROR, path);
                 free(data_dup);
                 data_dup = NULL;
                 return;
