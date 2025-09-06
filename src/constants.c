@@ -37,4 +37,5 @@ const char* FILE_PERMISSIONS_ERROR = "You do not have the necessary permissions 
 const char* COULD_NOT_READ_FILE_ERROR = "Could not read file";
 const char* UNAUTHORIZED_FILE_OPERATION_ERROR = "Not authorized to open this file";
 const char* RESPONSE_TYPE_OK = "ok";
+const char* RESPONSE_TYPE_OK_HEAD = "ok_head";
 const char* RESPONSE_TYPE_ERROR = "error";

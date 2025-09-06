@@ -12,6 +12,12 @@ void handle_request(HTTPParserResult* result)
     // Method handling
     switch(result->method)
     {
+        case HEAD:
+            const char* default_filename = "index.html";
+            char* default_path = build_path(default_filename, RESPONSE_TYPE_OK);
+            parse_headers(result->headers);
+            set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK_HEAD, default_path);
+            break;
         case PATCH:
             if (!result->request_body)
             {

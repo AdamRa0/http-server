@@ -37,5 +37,10 @@ void set_server_response(HTTPParserResult* result, int status_code, const char* 
         snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE, status_code, status, date_buffer, file_data.file_size, file_data.file_content);
     }
 
+    if (response_type == RESPONSE_TYPE_OK_HEAD)
+    {
+        snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE, status_code, status, date_buffer, file_data.file_size, "");
+    }
+
     result->response_body = response;
 }

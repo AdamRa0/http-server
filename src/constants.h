@@ -27,6 +27,7 @@ extern const char* FILE_PERMISSIONS_ERROR;
 extern const char* COULD_NOT_READ_FILE_ERROR;
 extern const char* UNAUTHORIZED_FILE_OPERATION_ERROR;
 extern const char* RESPONSE_TYPE_OK;
+extern const char* RESPONSE_TYPE_OK_HEAD;
 extern const char* RESPONSE_TYPE_ERROR;
 
 #endif
