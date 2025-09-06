@@ -7,6 +7,10 @@
 #include "../Parsers/headers.h"
 #include "../Parsers/http_req_parser.h"
 
+#ifndef NULL
+#define NULL ((void*) 0)
+#endif
+
 void handle_request(HTTPParserResult* result)
 {
     // Method handling
@@ -17,6 +21,10 @@ void handle_request(HTTPParserResult* result)
             char* default_path = build_path(default_filename, RESPONSE_TYPE_OK);
             parse_headers(result->headers);
             set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK_HEAD, default_path);
+            break;
+        case OPTIONS:
+            parse_headers(result->headers);
+            set_server_response(result, NO_CONTENT_STATUS_CODE, NO_CONTENT_STATUS, RESPONSE_TYPE_OPTIONS, NULL);
             break;
         case PATCH:
             if (!result->request_body)

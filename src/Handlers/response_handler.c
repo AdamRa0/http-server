@@ -17,7 +17,10 @@ void set_server_response(HTTPParserResult* result, int status_code, const char* 
 
     FileData file_data;
 
-    file_data = read_file(filename);
+    if (filename)
+    {
+        file_data = read_file(filename);
+    }
 
     char* response = (char* ) malloc(RESPONSE_SIZE);
     char date_buffer[DATE_BUFFER_SIZE];
@@ -40,6 +43,11 @@ void set_server_response(HTTPParserResult* result, int status_code, const char* 
     if (response_type == RESPONSE_TYPE_OK_HEAD)
     {
         snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE, status_code, status, date_buffer, file_data.file_size, "");
+    }
+
+    if (response_type == RESPONSE_TYPE_OPTIONS)
+    {
+        snprintf(response, RESPONSE_SIZE, SERVER_OPTIONS_RESPONSE, status_code, status, SERVER_OPTIONS, date_buffer);
     }
 
     result->response_body = response;
