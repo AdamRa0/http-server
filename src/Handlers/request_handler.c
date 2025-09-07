@@ -81,6 +81,12 @@ void handle_request(HTTPParserResult* result)
             parse_headers(result->headers);
             set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK, index_path);
             break;
+        case TRACE:
+            server_error_handler(result);
+            break;
+        case CONNECT:
+            server_error_handler(result);
+            break;
         case NONE:
             server_error_handler(result);
             break;
