@@ -1,3 +1,8 @@
+PROGRAM_NAME := cerver
+CONF_DIR := /etc
+PREFIX := /usr/local
+WEBROOT := /var/www
+
 CC := gcc
 
 CFLAGS := -Wall -Wextra -g
@@ -6,7 +11,7 @@ SRC_DIR := src
 HTML_DIR := html
 BIN_DIR := bin
 
-OUTPUT := $(BIN_DIR)/cerver
+OUTPUT := $(BIN_DIR)/$(PROGRAM_NAME)
 
 SRCS = $(shell find $(SRC_DIR) -name '*.c')
 OBJS = $(SRCS:.c=.o)
@@ -28,30 +33,36 @@ copy-html: $(OUTPUT)
 
 dev: all
 	@echo "Starting server from $(BIN_DIR)..."
-	cd $(BIN_DIR) && ./cerver
+	cd $(BIN_DIR) && ./$(PROGRAM_NAME)
 
 install: all
-	mkdir -p /usr/local/bin
-	mkdir -p /usr/local/share/cerver
-	cp $(OUTPUT) /usr/local/bin/
-	cp -r $(HTML_DIR)/* /usr/local/share/cerver/
-	@echo "Installed to /usr/local/"
+	install -d $(DESTDIR)$(PREFIX)/$(BIN_DIR)
+	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)
+	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
-dist: all
-	mkdir -p dist/cerver
-	cp $(OUTPUT) dist/cerver/
-	cp -r $(HTML_DIR) dist/cerver/
-	tar -czf cerver.tar.gz -C dist cerver
-	@echo "Distribution package created: cerver.tar.gz"
+	install -m 755 $(OUTPUT) $(DESTDIR)$(PREFIX)/$(BIN_DIR)
+
+	install -m 644 conf/* $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)
+
+	cp -r $(HTML_DIR) $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+
+	@echo "Setting up permissions (may require sudo ...)"
+	-chown -R www-data:www-data $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME) 2>/dev/null || \
+		chown -R $(USER):$(USER) $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+	chmod -R 755 $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/$(BIN_DIR)/$(PROGRAM_NAME)
+	rm -rf $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)
+	rm -rf $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
 clean:
 	rm -f $(OBJS) $(OUTPUT)
 	rm -rf $(BIN_DIR)/html
-	rm -rf dist/ *.tar.gz
 
 clean-html:
 	rm -rf $(BIN_DIR)/html
 
 rebuild-html: clean-html copy-html
 
-.PHONY: all clean copy-html dev install dist clean-html rebuild-html
+.PHONY: all clean copy-html dev install uninstall clean-html rebuild-html
