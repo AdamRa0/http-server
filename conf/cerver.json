@@ -1,0 +1,14 @@
+{
+    "servers": [
+        {
+            "port": 80,
+            "server_name": "localhost",
+            "location": {
+                "path": "/",
+                "root": "/var/www/cerver/html",
+                "index": ["index.html", "index.htm"],
+                "error_pages": "/var/www/cerver/html/error_pages"
+            }
+        }
+    ]
+}
