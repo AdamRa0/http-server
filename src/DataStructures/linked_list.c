@@ -7,6 +7,12 @@
 
 void insert(BucketNode* node, LinkedList* data_structure)
 {
+    if (data_structure->head == NULL)
+    {
+        data_structure->head = node;
+        return;
+    }
+    
     BucketNode* current_node = data_structure->head;
 
     while (current_node->p_next != NULL)
