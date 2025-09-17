@@ -3,6 +3,7 @@
 #include "../Handlers/error_handler.h"
 #include "../Handlers/request_handler.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -103,6 +104,8 @@ void request_parser(char* data, HTTPParserResult* result)
     result->method = method_comparor(method_str);
 
     char* uri = strtok_r(NULL, " ", &req_line_ptr);
+
+    printf("Request URI: %s\n", uri);
 
     if (uri != NULL)
     {
@@ -227,10 +230,14 @@ void request_parser(char* data, HTTPParserResult* result)
         }
     }
 
+    result->request_body = NULL;
+    
     if (body_start && *body_start != '\0')
     {
         result->request_body = strdup(body_start);
     }
+
+    printf("Request body: %s\n", result->request_body);
 
     // set connection status
     handle_request(result);

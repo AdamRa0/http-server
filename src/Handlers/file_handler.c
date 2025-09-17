@@ -20,20 +20,23 @@ FileData read_file(const char* filepath)
 
     errno = 0;
 
-    access(filepath, F_OK);
-
-    if (errno == ENOENT)
+    if(access(filepath, F_OK) != 0)
     {
-        data.operation_msg = FILE_NOT_EXISTS_ERROR;
-        return data;
+        if (errno == ENOENT)
+        {
+            data.operation_msg = FILE_NOT_EXISTS_ERROR;
+            return data;
+        }
     }
 
-    access(filepath, R_OK);
 
-    if (errno == EACCES)
+    if(access(filepath, R_OK) != 0)
     {
-        data.operation_msg = FILE_PERMISSIONS_ERROR;
-        return data;
+        if (errno == EACCES)
+        {
+            data.operation_msg = FILE_PERMISSIONS_ERROR;
+            return data;
+        }
     }
 
     if (stat(filepath, &st) < 0)
@@ -56,11 +59,9 @@ FileData read_file(const char* filepath)
     if (errno == EIO)
     {
         data.operation_msg = COULD_NOT_READ_FILE_ERROR;
-        fclose(fd);
         return data;
     }
-
-
+    
     size_t file_size = (size_t)st.st_size;
 
     file_buffer = (char* ) malloc(file_size);
@@ -109,6 +110,8 @@ FileData read_file(const char* filepath)
 
         return data;
     }
+
+    printf("File mime type: %s\n", mime_type);
 
     data.mime_type = mime_type;
     magic_close(cookie);

@@ -11,7 +11,7 @@ const char* ENTRY_TYPE_MULTI_PARAM = "multi-param";
 const char* SERVER_ERROR_RESPONSE = "HTTP/1.1 %d %s\r\n"
     "Server: Cerver/1.0 (Linux)\r\n"
     "Date: %s\r\n"
-    "Content-Type: text/html; charset=utf-8\r\n"
+    "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n"
     "Connection: close\r\n"
     "X-Content-Type-Options: nosniff\r\n"
@@ -21,7 +21,7 @@ const char* SERVER_ERROR_RESPONSE = "HTTP/1.1 %d %s\r\n"
 const char* SERVER_OK_RESPONSE = "HTTP/1.1 %d %s\r\n"
     "Server: Cerver/1.0 (Linux)\r\n"
     "Date: %s\r\n"
-    "Content-Type: text/html; charset=utf-8\r\n"
+    "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n"
     "X-Content-Type-Options: nosniff\r\n"
     "\r\n"
@@ -38,6 +38,7 @@ const char* UNSUPPORTED_HTTP_VERSION_STATUS = "Unsupported HTTP Version";
 const char* BAD_REQUEST_STATUS = "Bad Request";
 const char* OK_STATUS = "Ok";
 const char* NO_CONTENT_STATUS = "No Content";
+const char* NOT_FOUND_STATUS = "Not Found";
 const char* METHOD_NOT_IMPLEMENTED_STATUS = "Method not implemented";
 const char* INTERNAL_SERVER_ERROR_STATUS = "Internal Server Error";
 const char* FILE_NOT_EXISTS_ERROR = "File does not exist";

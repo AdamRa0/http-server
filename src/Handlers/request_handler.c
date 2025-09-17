@@ -7,6 +7,8 @@
 #include "../Parsers/headers.h"
 #include "../Parsers/http_req_parser.h"
 
+#include <string.h>
+
 #ifndef NULL
 #define NULL ((void*) 0)
 #endif
@@ -18,13 +20,13 @@ void handle_request(HTTPParserResult* result)
     {
         case HEAD:
             const char* default_filename = "index.html";
-            char* default_path = build_path(default_filename, RESPONSE_TYPE_OK);
+            char* default_path = build_path(default_filename, false);
             parse_headers(result->headers);
-            set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK_HEAD, default_path);
+            set_server_response(result, default_path);
             break;
         case OPTIONS:
             parse_headers(result->headers);
-            set_server_response(result, NO_CONTENT_STATUS_CODE, NO_CONTENT_STATUS, RESPONSE_TYPE_OPTIONS, NULL);
+            set_server_response(result, NULL);
             break;
         case PATCH:
             if (!result->request_body)
@@ -74,12 +76,11 @@ void handle_request(HTTPParserResult* result)
 
             char* uri = result->URI;
 
-            // TODO: do something with URI (Implement routing)
+            const char* filename = (strcmp(result->URI, "/") == 0) ? "index.html" : result->URI + 1;
 
-            const char* filename_index = "index.html";
-            char* index_path = build_path(filename_index, RESPONSE_TYPE_OK);
+            char* file_path = build_path(filename, false);
             parse_headers(result->headers);
-            set_server_response(result, OK_STATUS_CODE, OK_STATUS, RESPONSE_TYPE_OK, index_path);
+            set_server_response(result, file_path);
             break;
         case TRACE:
             server_error_handler(result);

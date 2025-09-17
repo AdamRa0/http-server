@@ -3,6 +3,7 @@
 
 #define UNSUPPORTED_HTTP_VERSION_STATUS_CODE 505
 #define BAD_REQUEST_STATUS_CODE 400
+#define NOT_FOUND_STATUS_CODE 404
 #define OK_STATUS_CODE 200 // Delete later
 #define METHOD_NOT_IMPLEMENTED_STATUS_CODE 501
 #define INTERNAL_SERVER_ERROR_STATUS_CODE 500
@@ -23,6 +24,7 @@ extern const char* UNSUPPORTED_HTTP_VERSION_STATUS;
 extern const char* BAD_REQUEST_STATUS;
 extern const char* OK_STATUS;
 extern const char* NO_CONTENT_STATUS;
+extern const char* NOT_FOUND_STATUS;
 extern const char* METHOD_NOT_IMPLEMENTED_STATUS;
 extern const char* INTERNAL_SERVER_ERROR_STATUS;
 extern const char* FILE_NOT_EXISTS_ERROR;

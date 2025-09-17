@@ -19,7 +19,7 @@ OBJS = $(SRCS:.c=.o)
 all: $(OUTPUT) copy-html
 
 $(OUTPUT): $(OBJS) | $(BIN_DIR)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ -lmagic
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
