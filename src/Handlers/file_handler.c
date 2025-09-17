@@ -6,6 +6,7 @@
 #include <magic.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -111,7 +112,7 @@ FileData read_file(const char* filepath)
         return data;
     }
 
-    data.mime_type = mime_type;
+    data.mime_type = strdup(mime_type);
     magic_close(cookie);
 
     return data;
