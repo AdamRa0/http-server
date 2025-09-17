@@ -7,6 +7,7 @@ typedef struct {
     char* file_content;
     size_t file_size;
     const char* operation_msg;
+    const char* mime_type;
 } FileData;
 
 FileData read_file(const char* filepath);

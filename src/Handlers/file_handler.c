@@ -3,6 +3,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <magic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -78,6 +79,39 @@ FileData read_file(const char* filepath)
     data.file_size = res;
 
     fclose(fd);
+
+    magic_t cookie = magic_open(MAGIC_MIME_TYPE);
+
+    if (!cookie)
+    {
+        fprintf(stderr, "Unable to initialize magic library.\n");
+        data.mime_type = NULL;
+
+        return data;
+    }
+
+    if (magic_load(cookie, NULL) != 0)
+    {
+        fprintf(stderr, "Unable to load magic database: %s\n", magic_error(cookie));
+        data.mime_type = NULL;
+        magic_close(cookie);
+
+        return data;
+    }
+
+    const char* mime_type = magic_file(cookie, filepath);
+
+    if (!mime_type)
+    {
+        fprintf(stderr, "Unable to find file MIME type: %s\n", magic_error(cookie));
+        data.mime_type = NULL;
+        magic_close(cookie);
+
+        return data;
+    }
+
+    data.mime_type = mime_type;
+    magic_close(cookie);
 
     return data;
 }
