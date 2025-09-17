@@ -3,6 +3,7 @@
 
 #include "../path_builder.h"
 #include "../constants.h"
+#include "../DataStructures/hash_table.h"
 #include "../Parsers/body_parser.h"
 #include "../Parsers/headers.h"
 #include "../Parsers/http_req_parser.h"
@@ -14,7 +15,7 @@
 #define NULL ((void*) 0)
 #endif
 
-void handle_request(HTTPParserResult* result)
+void handle_request(HTTPParserResult* result, HashTable* h_dict)
 {
     // Method handling
     switch(result->method)
@@ -22,11 +23,11 @@ void handle_request(HTTPParserResult* result)
         case HEAD:
             const char* default_filename = "index.html";
             char* default_path = build_path(default_filename, false);
-            parse_headers(result->headers);
+            parse_headers(result->headers, h_dict);
             set_server_response(result, default_path);
             break;
         case OPTIONS:
-            parse_headers(result->headers);
+            parse_headers(result->headers, h_dict);
             set_server_response(result, NULL);
             break;
         case PATCH:
@@ -35,9 +36,9 @@ void handle_request(HTTPParserResult* result)
                 bad_request_handler(result);
                 break;
             }
-            parse_headers(result->headers);
-            set_connection_status(result);
-            parse_body(result->request_body, result);
+            parse_headers(result->headers, h_dict);
+            set_connection_status(result, h_dict);
+            parse_body(result->request_body, result, h_dict);
             break;
         case PUT:
             if (!result->request_body)
@@ -45,9 +46,9 @@ void handle_request(HTTPParserResult* result)
                 bad_request_handler(result);
                 break;
             }
-            parse_headers(result->headers);
-            set_connection_status(result);
-            parse_body(result->request_body, result);
+            parse_headers(result->headers, h_dict);
+            set_connection_status(result, h_dict);
+            parse_body(result->request_body, result, h_dict);
             break;
         case POST:
             if (!result->request_body)
@@ -55,17 +56,17 @@ void handle_request(HTTPParserResult* result)
                 bad_request_handler(result);
                 break;
             }
-            parse_headers(result->headers);
-            set_connection_status(result);
-            parse_body(result->request_body, result);
+            parse_headers(result->headers, h_dict);
+            set_connection_status(result, h_dict);
+            parse_body(result->request_body, result, h_dict);
             break;
         case DELETE:
             if (result->request_body)
             {
                 bad_request_handler(result);
             }
-            parse_headers(result->headers);
-            set_connection_status(result);
+            parse_headers(result->headers, h_dict);
+            set_connection_status(result, h_dict);
             break;
         case GET:
 
@@ -80,7 +81,7 @@ void handle_request(HTTPParserResult* result)
             const char* filename = (strcmp(result->URI, "/") == 0) ? "index.html" : result->URI + 1;
 
             char* file_path = build_path(filename, false);
-            parse_headers(result->headers);
+            parse_headers(result->headers, h_dict);
             set_server_response(result, file_path);
             break;
         case TRACE:

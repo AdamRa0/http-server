@@ -19,16 +19,20 @@ void clear_hash_table(HashTable* dictionary)
     {
         BucketNode* current = dictionary->buckets[i].head;
 
+        if (current == NULL) continue;
+
         while(current)
         {
             BucketNode* next = current->p_next;
 
+            free(current->key);
+            free(current->value);
             free(current);
 
             current = next;
         }
 
-        dictionary->buckets[i].head = NULL
+        dictionary->buckets[i].head = NULL;
     }
 }
 

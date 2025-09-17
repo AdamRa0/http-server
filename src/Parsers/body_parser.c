@@ -1,5 +1,6 @@
 #include "../constants.h"
 #include "../cJSON/cJSON.h"
+#include "../DataStructures/hash_table.h"
 #include "../Handlers/error_handler.h"
 
 #include "body_parser.h"
@@ -36,7 +37,7 @@ parsing_functions functions[] = {
 @param body_type Content-Type header value
 @param body_length Content-Length header value
 */
-void body_checker(char* request_body, char* body_type, char* body_length, HTTPParserResult* parser_struct)
+void body_checker(char* request_body, char* body_type, char* body_length, HTTPParserResult* parser_struct, HashTable* h_dict)
 {
     bool is_valid = false;
 
@@ -53,7 +54,7 @@ void body_checker(char* request_body, char* body_type, char* body_length, HTTPPa
             {
                 if ((strcmp(body_type, supported_content_types[i]) == 0))
                 {
-                    is_valid = functions[i](request_body);
+                    is_valid = functions[i](request_body, h_dict);
                 }
             }
         }
@@ -65,14 +66,14 @@ void body_checker(char* request_body, char* body_type, char* body_length, HTTPPa
     }
 }
 
-void parse_body(char* request_body, HTTPParserResult* struct_parser)
+void parse_body(char* request_body, HTTPParserResult* struct_parser, HashTable* h_dict)
 {
     enum HTTPMethods method = struct_parser->method;
-    char* content_type = get_header_value(CONTENT_TYPE_HEADER_NAME);
-    char* content_length = get_header_value(CONTENT_LENGTH_HEADER_NAME);
+    char* content_type = get_header_value(CONTENT_TYPE_HEADER_NAME, h_dict);
+    char* content_length = get_header_value(CONTENT_LENGTH_HEADER_NAME, h_dict);
 
     if (method == POST || method == PUT || method == PATCH)
     {
-        body_checker(request_body, content_type, content_length, struct_parser);
+        body_checker(request_body, content_type, content_length, struct_parser, h_dict);
     }
 }

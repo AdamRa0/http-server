@@ -7,23 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-HashTable header_dictionary;
-static bool initialized = false;
-
-HashTable* provide_hash_table()
+char* get_header_value(const char* key, HashTable* h_dict)
 {
-    if (!initialized)
-    {
-        init_hash_table(&header_dictionary);
-        initialized = true;
-    }
-    return &header_dictionary;
-}
-
-char* get_header_value(const char* key)
-{
-    HashTable* h_dict = provide_hash_table();
-
     BucketNode* h_node = find_in_bucket(key, h_dict);
 
     return h_node != NULL ? h_node->value : NULL;
@@ -52,6 +37,7 @@ void parse_header(char* header_name, char* header_value, HashTable* h_dict)
     
             node->key = strdup(header_name);
             node->value = strdup(header_value);
+            node->p_next = NULL;
     
             insert_to_bucket(node, h_dict, ENTRY_TYPE_SINGLE);
         } else 
@@ -67,6 +53,7 @@ void parse_header(char* header_name, char* header_value, HashTable* h_dict)
     
             node->key = strdup(header_name);
             node->value = strdup(content_header_value);
+            node->p_next = NULL;
     
             insert_to_bucket(node, h_dict, ENTRY_TYPE_SINGLE);
 
@@ -91,6 +78,7 @@ void parse_header(char* header_name, char* header_value, HashTable* h_dict)
             
                     node->key = strdup(param_name);
                     node->value = strdup(param_value);
+                    node->p_next = NULL;
             
                     insert_to_bucket(node, h_dict, ENTRY_TYPE_MULTI_PARAM);
                 }
@@ -101,10 +89,8 @@ void parse_header(char* header_name, char* header_value, HashTable* h_dict)
     }
 }
 
-void parse_headers(char* headers)
+void parse_headers(char* headers, HashTable* h_dict)
 {
-    HashTable* h_dict = provide_hash_table();
-
     char* headers_dup = strdup(headers);
 
     char* p_header_line;
@@ -148,9 +134,9 @@ void parse_headers(char* headers)
     headers_dup = NULL;
 }
 
-void set_connection_status(HTTPParserResult* parser_struct)
+void set_connection_status(HTTPParserResult* parser_struct, HashTable* h_dict)
 {
-    char* connection_status = get_header_value(CONNECTION_HEADER_NAME);
+    char* connection_status = get_header_value(CONNECTION_HEADER_NAME, h_dict);
 
     if (connection_status != NULL && (strcmp(connection_status, CONNECTION_KEEP_ALIVE_VALUE) == 0))
     {

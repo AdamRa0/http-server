@@ -1,6 +1,7 @@
 #include "../../constants.h"
 #include "../../cJSON/cJSON.h"
 #include "../headers.h"
+#include "../../DataStructures/hash_table.h"
 #include "../http_req_parser.h"
 #include "validators.h"
 
@@ -122,14 +123,14 @@ void check_content_disposition_header_present(Ctx_FormDataValidator* context, ch
     context->is_content_disposition = true;
 }
 
-bool multipart_form_data_valid(char* data)
+bool multipart_form_data_valid(char* data, HashTable* h_dict)
 {
     MultipartDataValidationState state = STATE_EXPECT_BOUNDARY;
 
     bool validation_failed = false;
 
     // Helper functions will check if boundary is null
-    char* boundary = get_header_value(BOUNDARY_HEADER_PARAM);
+    char* boundary = get_header_value(BOUNDARY_HEADER_PARAM, h_dict);
 
     size_t boundary_len = strlen(boundary);
 
@@ -285,7 +286,7 @@ ssize_t cast_char_to_ssize(char* value)
     return (ssize_t)val;
 }
 
-bool json_valid(char* data)
+bool json_valid(char* data, HashTable* h_dict)
 {
     bool is_json_valid = false;
 
@@ -318,9 +319,8 @@ bool is_valid_percent_encoding(const char* data, size_t pos, size_t length)
     return isxdigit(data[pos + 1]) && isxdigit(data[pos + 2]);
 }
 
-bool url_encoded_form_valid(char* data) 
-{                // Code fails  this condition
-
+bool url_encoded_form_valid(char* data, HashTable* h_dict) 
+{
     if (!data) return false;
 
     size_t length = strlen(data);

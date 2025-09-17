@@ -110,8 +110,6 @@ void request_parser(char* data, HTTPParserResult* result)
 
     char* uri = strtok_r(NULL, " ", &req_line_ptr);
 
-    printf("Request URI: %s\n", uri);
-
     if (uri != NULL)
     {
         result->URI = strdup(uri);
@@ -245,9 +243,9 @@ void request_parser(char* data, HTTPParserResult* result)
     printf("Request body: %s\n", result->request_body);
 
     // set connection status
-    handle_request(result);
+    handle_request(result, &headers_map);
 
-    clear_hash_table(&headers_map)
+    clear_hash_table(&headers_map);
 
     free(data_dup);
     data_dup = NULL;

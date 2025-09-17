@@ -47,8 +47,9 @@ void set_server_response(HTTPParserResult* result, char* filename)
                 {
                     if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
                     {
-                        const char* not_found_error_page = (const char*) path_builder(not_found_file, true);
-                        not_found_data = read_file(not_found_error_page)
+                        char* temp_path = build_path(not_found_file, true);
+                        const char* not_found_error_page = temp_path;
+                        not_found_data = read_file(not_found_error_page);
 
                         status_code = NOT_FOUND_STATUS_CODE;
                         status = NOT_FOUND_STATUS;

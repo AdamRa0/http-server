@@ -14,7 +14,7 @@ struct HashTable
 
 void init_hash_table(HashTable* dictionary);
 
-void clear_hash_table(HashTable* dictionary)
+void clear_hash_table(HashTable* dictionary);
 
 void insert_to_bucket(BucketNode* node, HashTable* dictionary, const char* entry_type);
 
