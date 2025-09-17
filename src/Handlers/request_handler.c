@@ -80,7 +80,6 @@ void handle_request(HTTPParserResult* result)
             const char* filename = (strcmp(result->URI, "/") == 0) ? "index.html" : result->URI + 1;
 
             char* file_path = build_path(filename, false);
-            printf("File_path: %s\n", file_path);
             parse_headers(result->headers);
             set_server_response(result, file_path);
             break;

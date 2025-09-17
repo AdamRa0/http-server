@@ -134,8 +134,6 @@ void set_server_response(HTTPParserResult* result, char* filename)
 
     strftime(date_buffer, sizeof(date_buffer), "%a, %d %b %Y %H:%M:%S GMT", gmt_time);
 
-    printf("Before loop, response_type: %s\n", response_type);
-
     if (response_type == RESPONSE_TYPE_ERROR)
     {
         snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, file_data.file_content);

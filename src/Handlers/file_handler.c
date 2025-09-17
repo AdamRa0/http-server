@@ -61,7 +61,7 @@ FileData read_file(const char* filepath)
         data.operation_msg = COULD_NOT_READ_FILE_ERROR;
         return data;
     }
-    
+
     size_t file_size = (size_t)st.st_size;
 
     file_buffer = (char* ) malloc(file_size);
@@ -110,8 +110,6 @@ FileData read_file(const char* filepath)
 
         return data;
     }
-
-    printf("File mime type: %s\n", mime_type);
 
     data.mime_type = mime_type;
     magic_close(cookie);
