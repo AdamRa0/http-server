@@ -90,38 +90,46 @@ void set_server_response(HTTPParserResult* result, char* filename)
             {
                 file_data = read_file(filename);
                 
-
-                if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
+                if (file_data.operation_msg)
                 {
-                    status_code = NOT_FOUND_STATUS_CODE;
-                    status = NOT_FOUND_STATUS;
-                    response_type = RESPONSE_TYPE_ERROR;
-                }
+                    if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
+                    {
+                        char* temp_path = build_path(not_found_file, true);
+                        const char* not_found_error_page = temp_path;
+                        not_found_data = read_file(not_found_error_page);
 
-                if (strcmp(file_data.operation_msg, COULD_NOT_READ_FILE_ERROR) == 0)
+                        status_code = NOT_FOUND_STATUS_CODE;
+                        status = NOT_FOUND_STATUS;
+                        response_type = RESPONSE_TYPE_NOT_FOUND;
+                    }
+
+                    else if (strcmp(file_data.operation_msg, COULD_NOT_READ_FILE_ERROR) == 0)
+                    {
+                        status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
+                        status = INTERNAL_SERVER_ERROR_STATUS;
+                        response_type = RESPONSE_TYPE_ERROR;
+                    }
+
+                    else if (strcmp(file_data.operation_msg, FILE_PERMISSIONS_ERROR) == 0)
+                    {
+                        status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
+                        status = INTERNAL_SERVER_ERROR_STATUS;
+                        response_type = RESPONSE_TYPE_ERROR;
+                    }
+
+                    else if (strcmp(file_data.operation_msg, UNAUTHORIZED_FILE_OPERATION_ERROR) == 0)
+                    {
+                        status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
+                        status = INTERNAL_SERVER_ERROR_STATUS;
+                        response_type = RESPONSE_TYPE_ERROR;
+                    }
+                } else 
                 {
-                    status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
-                    status = INTERNAL_SERVER_ERROR_STATUS;
-                    response_type = RESPONSE_TYPE_ERROR;
+                    status_code = OK_STATUS_CODE;
+                    status = OK_STATUS;
+                    response_type = RESPONSE_TYPE_OK_HEAD;
                 }
-
-                if (strcmp(file_data.operation_msg, FILE_PERMISSIONS_ERROR) == 0)
-                {
-                    status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
-                    status = INTERNAL_SERVER_ERROR_STATUS;
-                    response_type = RESPONSE_TYPE_ERROR;
-                }
-
-                if (strcmp(file_data.operation_msg, UNAUTHORIZED_FILE_OPERATION_ERROR) == 0)
-                {
-                    status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
-                    status = INTERNAL_SERVER_ERROR_STATUS;
-                    response_type = RESPONSE_TYPE_ERROR;
-                }
-
-                status_code = OK_STATUS_CODE;
-                status = OK_STATUS;
-                response_type = RESPONSE_TYPE_OK_HEAD;
+                
             }
             break;
         case OPTIONS:
