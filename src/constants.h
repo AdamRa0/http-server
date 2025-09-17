@@ -35,6 +35,7 @@ extern const char* RESPONSE_TYPE_OK;
 extern const char* RESPONSE_TYPE_OK_HEAD;
 extern const char* RESPONSE_TYPE_ERROR;
 extern const char* RESPONSE_TYPE_OPTIONS;
+extern const char* RESPONSE_TYPE_NOT_FOUND;
 extern const char* SERVER_OPTIONS;
 
 #endif

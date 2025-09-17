@@ -49,4 +49,5 @@ const char* RESPONSE_TYPE_OK = "ok";
 const char* RESPONSE_TYPE_OK_HEAD = "ok_head";
 const char* RESPONSE_TYPE_ERROR = "error";
 const char* RESPONSE_TYPE_OPTIONS = "options";
+const char* RESPONSE_TYPE_NOT_FOUND = "not_found";
 const char* SERVER_OPTIONS = "GET, PUT, PATCH, POST, DELETE, OPTIONS, HEAD";

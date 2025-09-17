@@ -1,6 +1,7 @@
 #include "file_handler.h"
 
 #include "../constants.h"
+#include "../path_builder.h"
 #include "../Parsers/http_req_parser.h"
 
 #include <ctype.h>
@@ -29,6 +30,8 @@ void set_server_response(HTTPParserResult* result, char* filename)
 {
 
     FileData file_data;
+    FileData not_found_data;
+    const char* not_found_file = "404.html";
     int status_code;
     const char* status = NULL;
     const char* response_type;
@@ -42,11 +45,14 @@ void set_server_response(HTTPParserResult* result, char* filename)
                 
                 if (file_data.operation_msg)
                 {
-                        if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
+                    if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
                     {
+                        const char* not_found_error_page = (const char*) path_builder(not_found_file, true);
+                        not_found_data = read_file(not_found_error_page)
+
                         status_code = NOT_FOUND_STATUS_CODE;
                         status = NOT_FOUND_STATUS;
-                        response_type = RESPONSE_TYPE_ERROR;
+                        response_type = RESPONSE_TYPE_NOT_FOUND;
                     }
 
                     else if (strcmp(file_data.operation_msg, COULD_NOT_READ_FILE_ERROR) == 0)
@@ -152,6 +158,11 @@ void set_server_response(HTTPParserResult* result, char* filename)
     if (response_type == RESPONSE_TYPE_OPTIONS)
     {
         snprintf(response, RESPONSE_SIZE, SERVER_OPTIONS_RESPONSE, status_code, status, SERVER_OPTIONS, date_buffer);
+    }
+
+    if (response_type == RESPONSE_TYPE_NOT_FOUND)
+    {
+        snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE, status_code, status, date_buffer, not_found_data.mime_type, not_found_data.file_size, not_found_data.file_content);
     }
 
     result->response_body = response;
