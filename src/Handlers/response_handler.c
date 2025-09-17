@@ -39,48 +39,90 @@ void set_server_response(HTTPParserResult* result, char* filename)
             if (filename)
             {
                 file_data = read_file(filename);
-
-                switch (file_data.operation_msg)
+                
+                if (file_data.operation_msg)
                 {
-                    case FILE_NOT_EXISTS_ERROR:
+                        if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
+                    {
                         status_code = NOT_FOUND_STATUS_CODE;
                         status = NOT_FOUND_STATUS;
                         response_type = RESPONSE_TYPE_ERROR;
-                        break;
-                    case COULD_NOT_READ_FILE_ERROR:
+                    }
+
+                    else if (strcmp(file_data.operation_msg, COULD_NOT_READ_FILE_ERROR) == 0)
+                    {
                         status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
                         status = INTERNAL_SERVER_ERROR_STATUS;
                         response_type = RESPONSE_TYPE_ERROR;
-                        break;
-                    case FILE_PERMISSIONS_ERROR:
+                    }
+
+                    else if (strcmp(file_data.operation_msg, FILE_PERMISSIONS_ERROR) == 0)
+                    {
                         status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
                         status = INTERNAL_SERVER_ERROR_STATUS;
                         response_type = RESPONSE_TYPE_ERROR;
-                        break;
-                    case UNAUTHORIZED_FILE_OPERATION_ERROR:
+                    }
+
+                    else if (strcmp(file_data.operation_msg, UNAUTHORIZED_FILE_OPERATION_ERROR) == 0)
+                    {
                         status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
                         status = INTERNAL_SERVER_ERROR_STATUS;
                         response_type = RESPONSE_TYPE_ERROR;
-                        break;
-                    case default:
-                        status_code = OK_STATUS_CODE;
-                        status = OK_STATUS;
-                        response_type = RESPONSE_TYPE_OK;
-                        break;
+                    }
+                } else 
+                {
+                    status_code = OK_STATUS_CODE;
+                    status = OK_STATUS;
+                    response_type = RESPONSE_TYPE_OK;
                 }
+                
             }
             break;
         case HEAD:
-            status_code = OK_STATUS_CODE;
-            status = OK_STATUS;
-            response_type = RESPONSE_TYPE_OK_HEAD;
+            if (filename)
+            {
+                file_data = read_file(filename);
+                
+
+                if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
+                {
+                    status_code = NOT_FOUND_STATUS_CODE;
+                    status = NOT_FOUND_STATUS;
+                    response_type = RESPONSE_TYPE_ERROR;
+                }
+
+                if (strcmp(file_data.operation_msg, COULD_NOT_READ_FILE_ERROR) == 0)
+                {
+                    status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
+                    status = INTERNAL_SERVER_ERROR_STATUS;
+                    response_type = RESPONSE_TYPE_ERROR;
+                }
+
+                if (strcmp(file_data.operation_msg, FILE_PERMISSIONS_ERROR) == 0)
+                {
+                    status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
+                    status = INTERNAL_SERVER_ERROR_STATUS;
+                    response_type = RESPONSE_TYPE_ERROR;
+                }
+
+                if (strcmp(file_data.operation_msg, UNAUTHORIZED_FILE_OPERATION_ERROR) == 0)
+                {
+                    status_code = INTERNAL_SERVER_ERROR_STATUS_CODE;
+                    status = INTERNAL_SERVER_ERROR_STATUS;
+                    response_type = RESPONSE_TYPE_ERROR;
+                }
+
+                status_code = OK_STATUS_CODE;
+                status = OK_STATUS;
+                response_type = RESPONSE_TYPE_OK_HEAD;
+            }
             break;
         case OPTIONS:
             status_code = NO_CONTENT_STATUS_CODE;
             status = NO_CONTENT_STATUS;
             response_type = RESPONSE_TYPE_OPTIONS;
             break;
-        case default:
+        default:
             break;
     }
 
@@ -91,6 +133,8 @@ void set_server_response(HTTPParserResult* result, char* filename)
     struct tm* gmt_time = gmtime(&now);
 
     strftime(date_buffer, sizeof(date_buffer), "%a, %d %b %Y %H:%M:%S GMT", gmt_time);
+
+    printf("Before loop, response_type: %s\n", response_type);
 
     if (response_type == RESPONSE_TYPE_ERROR)
     {
