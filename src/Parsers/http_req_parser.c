@@ -1,5 +1,6 @@
 #include "http_req_parser.h"
 
+#include "../DataStructures/hash_table.h"
 #include "../Handlers/error_handler.h"
 #include "../Handlers/request_handler.h"
 
@@ -62,6 +63,10 @@ enum HTTPMethods method_comparor(char* method)
 
 void request_parser(char* data, HTTPParserResult* result) 
 {
+    HashTable headers_map;
+
+    init_hash_table(&headers_map);
+
     if (data == NULL || strlen(data) == 0)
     {
         bad_request_handler(result);
@@ -241,6 +246,8 @@ void request_parser(char* data, HTTPParserResult* result)
 
     // set connection status
     handle_request(result);
+
+    clear_hash_table(&headers_map)
 
     free(data_dup);
     data_dup = NULL;

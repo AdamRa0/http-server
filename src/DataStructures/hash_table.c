@@ -13,6 +13,25 @@ void init_hash_table(HashTable* dictionary)
     memset(dictionary->buckets, 0, sizeof(dictionary->buckets));
 }
 
+void clear_hash_table(HashTable* dictionary)
+{
+    for(int i = 0; i < HASH_TABLE_SIZE; i++)
+    {
+        BucketNode* current = dictionary->buckets[i].head;
+
+        while(current)
+        {
+            BucketNode* next = current->p_next;
+
+            free(current);
+
+            current = next;
+        }
+
+        dictionary->buckets[i].head = NULL
+    }
+}
+
 unsigned int hash(const char* str)
 {
     unsigned int hash;
