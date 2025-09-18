@@ -11,6 +11,43 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+/*
+@brief checks if mime type starts with text
+@return bool
+
+@param mime_type const char*
+*/
+bool starts_with_text(const char* mime_type)
+{
+    const char* NEEDLE = "text";
+
+    return strncmp(mime_type, NEEDLE, strlen(NEEDLE)) == 0;
+}
+
+/*
+@brief adds charset to mimetype;
+@return const char* (newly updated mime_type)
+
+@param mime_type const char*
+*/
+const char* add_charset(const char* mime_type)
+{
+    const char* str_to_append = "; charset=utf-8";
+
+    size_t str_to_append_len = strlen(str_to_append);
+
+    size_t mime_type_len = strlen(mime_type);
+
+    char* str = (char*) malloc(mime_type_len + str_to_append_len + 1);
+
+    if (str == NULL) return NULL;
+
+    strcpy(str, mime_type);
+    strcat(str, str_to_append);
+
+    return str;
+}
+
 FileData read_file(const char* filepath)
 {
     FileData data = {0};
@@ -112,7 +149,16 @@ FileData read_file(const char* filepath)
         return data;
     }
 
-    data.mime_type = strdup(mime_type);
+    if (strcmp(mime_type, "application/json") == 0 || strcmp(mime_type, "application/xml") == 0 || starts_with_text(mime_type))
+    {
+        const char* proper_mime_type = add_charset(strdup(mime_type));
+    
+        data.mime_type = proper_mime_type;
+    } else 
+    {
+        data.mime_type = strdup(mime_type);
+    }
+    
     magic_close(cookie);
 
     return data;

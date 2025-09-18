@@ -12,4 +12,8 @@ typedef struct {
 
 FileData read_file(const char* filepath);
 
+const char* add_charset(const char* mime_type);
+
+bool starts_with_text(const char* mime_type);
+
 #endif
