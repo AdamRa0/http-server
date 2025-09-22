@@ -52,11 +52,27 @@ int main()
 
     int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
 
-    int optval = 0;
+    int optval = 1;
+
+    if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
+    {
+        perror("Failed to set REUSEADDR option");
+        close(socket_fd);
+        return -1;
+    }
+
+    if(setsockopt(socket_fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) < 0)
+    {
+        perror("Failed to set KEEPALIVE option");
+        close(socket_fd);
+        return -1;
+    }
+
+    optval = 0;
 
     if(setsockopt(socket_fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)) < 0)
     {
-        perror("Failed to set IPV6_V6ONLY option");
+        perror("Failed to disable IPV6_V6ONLY option");
         close(socket_fd);
         return -1;
     }
