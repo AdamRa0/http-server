@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,19 +7,48 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "path_builder.h"
+#include "cJSON/cJSON.h"
+#include "Handlers/file_handler.h"
 #include "Parsers/http_req_parser.h"
 
 #define MAX_MESSAGE_SIZE 40960
-#define PORT 7000
 
 int main()
 {
+    char* conf_file_path = build_path("cerver.json", false, true);
+
+    int port = 0;
+
+    FileData conf_data = read_file(conf_file_path);
+
+    cJSON* conf_json_data = cJSON_ParseWithLength(conf_data.file_content, strlen(conf_data.file_content));
+
+    if (conf_json_data != NULL)
+    {
+        cJSON* servers = cJSON_GetObjectItemCaseSensitive(conf_json_data, "servers");
+
+        cJSON* server = NULL;
+
+        cJSON_ArrayForEach(server, servers)
+        {
+            cJSON* server_port = cJSON_GetObjectItemCaseSensitive(server, "port");
+
+            if (!cJSON_IsNumber(server_port))
+            {
+                goto stop_server;
+            }
+
+            port = (int) server_port->valuedouble;
+        }
+    }
+
     struct sockaddr_in6 server_sockaddr_in;
     memset(&server_sockaddr_in, 0, sizeof(server_sockaddr_in));
 
     server_sockaddr_in.sin6_family = AF_INET6;
     server_sockaddr_in.sin6_addr = in6addr_any;
-    server_sockaddr_in.sin6_port = htons(PORT);
+    server_sockaddr_in.sin6_port = htons(port);
 
     int socket_fd = socket(AF_INET6, SOCK_STREAM, 0);
 
@@ -31,14 +61,23 @@ int main()
         return -1;
     }
 
-    if(bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) < 0)
-    {
-        perror("Failed to bind socket");
-        close(socket_fd);
-        return -1;
-    }
+    if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) {
+        printf("Server running on port %d\n", port);
+    } else if (port == 80 && errno == EACCES) {
+        printf("Port 80 requires root privileges, trying port 8080...\n");
 
-    printf("Server is running and listening on port 7000\n");
+        server_sockaddr_in.sin6_port = htons(8080);
+
+        if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) {
+            printf("Server running on port 8080\n");
+            printf("Access at: http://localhost:8080\n");
+        } else 
+        {
+            perror("Failed to bind socket");
+            close(socket_fd);
+            return -1;
+        }
+    }
 
     if (listen(socket_fd, 10) < 0)
     {
@@ -102,6 +141,11 @@ int main()
             close(accepted_conn);
         }
     }
+
+    stop_server:
+        cJSON_Delete(conf_json_data);
+        perror("Could not set server port value");
+        return -1;
 
     close(socket_fd);
     return 0;

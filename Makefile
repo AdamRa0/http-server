@@ -9,6 +9,7 @@ CFLAGS := -Wall -Wextra -g
 
 SRC_DIR := src
 HTML_DIR := html
+SERVER_CONF_DIR := conf
 BIN_DIR := bin
 
 OUTPUT := $(BIN_DIR)/$(PROGRAM_NAME)
@@ -16,7 +17,7 @@ OUTPUT := $(BIN_DIR)/$(PROGRAM_NAME)
 SRCS = $(shell find $(SRC_DIR) -name '*.c')
 OBJS = $(SRCS:.c=.o)
 
-all: $(OUTPUT) copy-html
+all: $(OUTPUT) copy-html copy-conf
 
 $(OUTPUT): $(OBJS) | $(BIN_DIR)
 	$(CC) -o $@ $^ -lmagic
@@ -31,13 +32,17 @@ copy-html: $(OUTPUT)
 	cp -r $(HTML_DIR) $(BIN_DIR)/
 	@echo "HTML files copied to $(BIN_DIR)/html/"
 
+copy-conf: $(OUTPUT)
+	cp -r $(SERVER_CONF_DIR) $(BIN_DIR)/
+	@echo "CONF files copied to $(BIN_DIR)/conf/"
+
 dev: all
 	@echo "Starting server from $(BIN_DIR)..."
 	cd $(BIN_DIR) && ./$(PROGRAM_NAME)
 
 install: all
 	install -d $(DESTDIR)$(PREFIX)/$(BIN_DIR)
-	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
+	install -d $(DESTDIR)$S) $(BIN(CONF_DIR)/$(PROGRAM_NAME)/conf
 	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
 	install -m 755 $(OUTPUT) $(DESTDIR)$(PREFIX)/$(BIN_DIR)
@@ -65,4 +70,4 @@ clean-html:
 
 rebuild-html: clean-html copy-html
 
-.PHONY: all clean copy-html dev install uninstall clean-html rebuild-html
+.PHONY: all clean copy-html copy-conf dev install uninstall clean-html rebuild-html

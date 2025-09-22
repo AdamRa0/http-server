@@ -21,7 +21,7 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
     {
         case HEAD:
             const char* default_filename = "index.html";
-            char* default_path = build_path(default_filename, false);
+            char* default_path = build_path(default_filename, false, false);
             parse_headers(result->headers, h_dict);
             set_server_response(result, default_path);
             break;
@@ -79,7 +79,7 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
             const char* filename = (strcmp(result->URI, "/") == 0) ? "index.html" : result->URI + 1;
 
-            char* file_path = build_path(filename, false);
+            char* file_path = build_path(filename, false, false);
             parse_headers(result->headers, h_dict);
             set_server_response(result, file_path);
             break;
