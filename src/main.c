@@ -77,14 +77,17 @@ int main()
         return -1;
     }
 
-    if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) {
+    if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) 
+    {
         printf("Server running on port %d\n", port);
-    } else if (port == 80 && errno == EACCES) {
+    } else if (port == 80 && errno == EACCES) 
+    {
         printf("Port 80 requires root privileges, trying port 8080...\n");
 
         server_sockaddr_in.sin6_port = htons(8080);
 
-        if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) {
+        if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) 
+        {
             printf("Server running on port 8080\n");
             printf("Access at: http://localhost:8080\n");
         } else 
