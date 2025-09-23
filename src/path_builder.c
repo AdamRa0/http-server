@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char* CONF_ROOT = "./conf";
+const char* CONF_ROOT = "/etc/cerver/conf";
 
 char* build_path(const char* filename, const char* file_root, const char* error_page_root, bool is_conf_file) {
     char* path;

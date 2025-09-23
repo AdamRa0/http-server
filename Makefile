@@ -17,7 +17,7 @@ OUTPUT := $(BIN_DIR)/$(PROGRAM_NAME)
 SRCS = $(shell find $(SRC_DIR) -name '*.c')
 OBJS = $(SRCS:.c=.o)
 
-all: $(OUTPUT) copy-conf
+all: $(OUTPUT)
 
 $(OUTPUT): $(OBJS) | $(BIN_DIR)
 	$(CC) -o $@ $^ -lmagic
@@ -28,17 +28,18 @@ $(BIN_DIR):
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-copy-conf: $(OUTPUT)
-	cp -r $(SERVER_CONF_DIR) $(BIN_DIR)/
-	@echo "CONF files copied to $(BIN_DIR)/conf/"
-
 dev: all
+	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
+	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+
+	install -m 644 conf/* $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
+
 	@echo "Starting server from $(BIN_DIR)..."
 	cd $(BIN_DIR) && ./$(PROGRAM_NAME)
 
 install: all
 	install -d $(DESTDIR)$(PREFIX)/$(BIN_DIR)
-	install -d $(DESTDIR)$S) $(BIN(CONF_DIR)/$(PROGRAM_NAME)/conf
+	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
 	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
 	install -m 755 $(OUTPUT) $(DESTDIR)$(PREFIX)/$(BIN_DIR)
@@ -59,11 +60,8 @@ uninstall:
 
 clean:
 	rm -f $(OBJS) $(OUTPUT)
-	rm -rf $(BIN_DIR)/html
 
-clean-html:
-	rm -rf $(BIN_DIR)/html
+	rm -rf $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)
+	rm -rf $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
-rebuild-html: clean-html
-
-.PHONY: all clean copy-conf dev install uninstall clean-html rebuild-html
+.PHONY: all clean dev install uninstall clean-html rebuild-html
