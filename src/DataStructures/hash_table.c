@@ -38,12 +38,12 @@ void clear_hash_table(HashTable* dictionary)
 
 unsigned int hash(const char* str)
 {
-    unsigned int hash;
+    unsigned int hash = MAGIC_NUMBER;
     int c;
-
+    
     while ((c = *str++))
     {
-        hash = ((MAGIC_NUMBER << 5) + MAGIC_NUMBER) + c;
+        hash = ((hash << 5) + hash) + c;
     }
 
     return hash;

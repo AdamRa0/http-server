@@ -17,7 +17,7 @@ OUTPUT := $(BIN_DIR)/$(PROGRAM_NAME)
 SRCS = $(shell find $(SRC_DIR) -name '*.c')
 OBJS = $(SRCS:.c=.o)
 
-all: $(OUTPUT) copy-html copy-conf
+all: $(OUTPUT) copy-conf
 
 $(OUTPUT): $(OBJS) | $(BIN_DIR)
 	$(CC) -o $@ $^ -lmagic
@@ -27,10 +27,6 @@ $(BIN_DIR):
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-
-copy-html: $(OUTPUT)
-	cp -r $(HTML_DIR) $(BIN_DIR)/
-	@echo "HTML files copied to $(BIN_DIR)/html/"
 
 copy-conf: $(OUTPUT)
 	cp -r $(SERVER_CONF_DIR) $(BIN_DIR)/
@@ -68,6 +64,6 @@ clean:
 clean-html:
 	rm -rf $(BIN_DIR)/html
 
-rebuild-html: clean-html copy-html
+rebuild-html: clean-html
 
-.PHONY: all clean copy-html copy-conf dev install uninstall clean-html rebuild-html
+.PHONY: all clean copy-conf dev install uninstall clean-html rebuild-html

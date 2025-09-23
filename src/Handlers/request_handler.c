@@ -18,15 +18,13 @@
 
 void handle_request(HTTPParserResult* result, HashTable* h_dict)
 {
-    printf("Headers: %s\n", result->headers);
     parse_headers(result->headers, h_dict);
 
-    // Cause of segfault
     const char* host = get_header_value("Host", h_dict);
 
     // if (host == NULL)
     // {
-    //     server_error_handler(result);
+    //     TODO: log error, serve error page
     //     return;
     // }
 
@@ -39,16 +37,7 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
     {
         cJSON* server_name = cJSON_GetObjectItemCaseSensitive(server, "server_name");
 
-        // if (!cJSON_IsString(server_name))
-        // {
-        //     server_error_handler(result);
-        //     return;
-        // }
-
-        printf("Server name: %s\n", server_name->valuestring);
-        printf("Host name: %s\n", host);
-
-        if(strstr(server_name->valuestring, host))
+        if(strstr(host, server_name->valuestring))
         {
             appropriate_server_block = server;
             break;
@@ -59,7 +48,7 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
     if (cJSON_IsNull(application_block))
     {
-        // server_error_handler(result);
+        // TODO: log error, serve error page
         return;       
     }
 
@@ -67,7 +56,7 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
     if (cJSON_IsNull(application_uri_path))
     {
-        // server_error_handler(result);
+        // TODO: log error, serve error page
         return;        
     }
 
@@ -78,8 +67,6 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
         result->error_page_root = cJSON_GetObjectItemCaseSensitive(application_block, "error_pages");
     }
 
-    printf("Error page path: %s\n", result->error_page_root->valuestring);
-    
     // Method handling
     switch(result->method)
     {

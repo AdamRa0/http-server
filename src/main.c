@@ -158,7 +158,7 @@ int main()
         {
             free(result);
             result = NULL;
-            cJSON_Delete(conf_json_data);
+            // cJSON_Delete(conf_json_data);
             close(accepted_conn);
         }
     }
