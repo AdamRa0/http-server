@@ -34,6 +34,8 @@ dev: all
 
 	install -m 644 conf/* $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
 
+	cp -r $(HTML_DIR) $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+
 	@echo "Starting server from $(BIN_DIR)..."
 	cd $(BIN_DIR) && ./$(PROGRAM_NAME)
 
@@ -64,4 +66,4 @@ clean:
 	rm -rf $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)
 	rm -rf $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
-.PHONY: all clean dev install uninstall clean-html rebuild-html
+.PHONY: all clean dev install uninstall
