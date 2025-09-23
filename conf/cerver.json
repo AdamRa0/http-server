@@ -6,7 +6,7 @@
             "location": {
                 "path": "/",
                 "root": "/var/www/cerver/html",
-                "index": ["index.html", "index.htm"],
+                "index": "index.html",
                 "error_pages": "/var/www/cerver/html/error_pages"
             }
         }

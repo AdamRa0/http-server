@@ -1,6 +1,8 @@
 #ifndef HTTP_REQ_PARSER_H
 #define HTTP_REQ_PARSER_H
 
+#include "../cJSON/cJSON.h"
+
 enum HTTPMethods {
     GET,
     POST,
@@ -27,6 +29,10 @@ typedef struct HTTPParserResult{
     char* headers;
     char* request_body;
     char* response_body;
+    cJSON* config_data;
+    cJSON* web_page_root;
+    cJSON* error_page_root;
+    cJSON* default_index_file;
 } HTTPParserResult;
 
 void request_parser(char* data, HTTPParserResult* result);

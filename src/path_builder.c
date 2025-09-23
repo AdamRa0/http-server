@@ -5,27 +5,27 @@
 #include <string.h>
 
 const char* CONF_ROOT = "./conf";
-const char* HTML_ROOT = "./html";
-const char* ERROR_PAGES = "error_pages";
 
-char* build_path(const char* filename, bool is_error_page, bool is_conf_file) {
+char* build_path(const char* filename, const char* file_root, const char* error_page_root, bool is_conf_file) {
     char* path;
 
-    if (!is_error_page && !is_conf_file)
+    if (file_root)
     {
-        size_t len = strlen(HTML_ROOT) + strlen(filename) + 2;
+        size_t len = strlen(file_root) + strlen(filename) + 2;
         path = malloc(len);
-        snprintf(path, len, "%s/%s", HTML_ROOT, filename);
-    } else if (is_error_page && !is_conf_file)
+        snprintf(path, len, "%s/%s", file_root, filename);
+    } else if (error_page_root)
     {
-        size_t len = strlen(HTML_ROOT) + strlen(ERROR_PAGES) + strlen(filename) + 3;
+        size_t len = strlen(error_page_root) + strlen(filename) + 2;
         path = malloc(len);
-        snprintf(path, len, "%s/%s/%s", HTML_ROOT, ERROR_PAGES, filename);
+        snprintf(path, len, "%s/%s", error_page_root, filename);
     } else if (is_conf_file)
     {
         size_t len = strlen(CONF_ROOT) + strlen(filename) + 2;
         path = malloc(len);
         snprintf(path, len, "%s/%s", CONF_ROOT, filename);        
+    } else {
+        return NULL;
     }
     
     return path;

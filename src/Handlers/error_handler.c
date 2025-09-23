@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "error_handler.h"
 #include "response_handler.h"
 
@@ -8,15 +10,16 @@
 void bad_request_handler(HTTPParserResult* result)
 {
     const char* filename = "400.html";
-    char* path = build_path(filename, true, false);
+    char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
     set_server_response(result, path);
 }
 
 void server_error_handler(HTTPParserResult* result)
 {
+    printf("Error page path: %s\n", result->error_page_root->valuestring);
     const char* filename = "500.html";
-    char* path = build_path(filename, true, false);
+    char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
     set_server_response(result, path);
 }

@@ -47,7 +47,7 @@ void set_server_response(HTTPParserResult* result, char* filename)
                 {
                     if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
                     {
-                        char* temp_path = build_path(not_found_file, true, false);
+                        char* temp_path = build_path(not_found_file, NULL, result->error_page_root->valuestring, false);
                         const char* not_found_error_page = temp_path;
                         not_found_data = read_file(not_found_error_page);
 
@@ -94,7 +94,7 @@ void set_server_response(HTTPParserResult* result, char* filename)
                 {
                     if (strcmp(file_data.operation_msg, FILE_NOT_EXISTS_ERROR) == 0)
                     {
-                        char* temp_path = build_path(not_found_file, true, false);
+                        char* temp_path = build_path(not_found_file, NULL, result->error_page_root->valuestring, false);
                         const char* not_found_error_page = temp_path;
                         not_found_data = read_file(not_found_error_page);
 

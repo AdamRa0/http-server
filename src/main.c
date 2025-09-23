@@ -16,7 +16,7 @@
 
 int main()
 {
-    char* conf_file_path = build_path("cerver.json", false, true);
+    char* conf_file_path = build_path("cerver.json", NULL, NULL, true);
 
     int port = 0;
 
@@ -111,6 +111,7 @@ int main()
         socklen_t client_addr_len = sizeof(client_addr);
 
         HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
+        result->config_data = conf_json_data;
 
         enum ConnectionStatus client_connection_status;
 
@@ -157,6 +158,7 @@ int main()
         {
             free(result);
             result = NULL;
+            cJSON_Delete(conf_json_data);
             close(accepted_conn);
         }
     }
