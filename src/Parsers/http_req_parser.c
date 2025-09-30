@@ -4,9 +4,19 @@
 #include "../Handlers/error_handler.h"
 #include "../Handlers/request_handler.h"
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+volatile sig_atomic_t recv_sig = 0;
+
+void sig_handler(int sig_num)
+{
+    recv_sig = sig_num;
+}
+
 
 enum HTTPMethods method_comparor(char* method)
 {
@@ -63,6 +73,11 @@ enum HTTPMethods method_comparor(char* method)
 
 void request_parser(char* data, HTTPParserResult* result) 
 {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = sig_handler;
+    sigaction(SIGALRM, &sa, NULL);
+
     HashTable headers_map;
 
     init_hash_table(&headers_map);
@@ -242,8 +257,13 @@ void request_parser(char* data, HTTPParserResult* result)
 
     printf("Request body: %s\n", result->request_body);
 
-    // set connection status
-    handle_request(result, &headers_map);
+    // Handle request within 30 seconds
+    alarm(30);
+
+    while (recv_sig != SIGALRM && !result->request_handled)
+    {
+        handle_request(result, &headers_map);
+    }
 
     clear_hash_table(&headers_map);
 

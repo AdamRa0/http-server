@@ -22,6 +22,7 @@ enum ConnectionStatus {
 };
 
 typedef struct HTTPParserResult{
+    bool request_handled;
     enum HTTPMethods method;
     enum ConnectionStatus connection_status;
     float http_version;
