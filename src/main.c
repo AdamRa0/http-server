@@ -176,8 +176,6 @@ int main()
             perror("Failed to receive message");
         }
 
-        // TODO: Process request
-
         if (result->response_body)
         {
             write(accepted_conn, result->response_body, strlen(result->response_body));
