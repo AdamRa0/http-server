@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +15,24 @@
 
 #define MAX_MESSAGE_SIZE 40960
 
+volatile sig_atomic_t received_signal = 0;
+
+void signal_handler(int signal_num)
+{
+    received_signal = signal_num;
+}
+
 int main()
 {
+
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    
+    sa.sa_handler = signal_handler;
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGSEGV, &sa, NULL);
+
     char* conf_file_path = build_path("cerver.json", NULL, NULL, true);
 
     int port = 0;
@@ -36,7 +53,8 @@ int main()
 
             if (!cJSON_IsNumber(server_port))
             {
-                goto stop_server;
+                cJSON_Delete(conf_json_data);
+                perror("Could not set server port value");
             }
 
             port = (int) server_port->valuedouble;
@@ -115,12 +133,23 @@ int main()
 
         enum ConnectionStatus client_connection_status;
 
+        if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
+        {
+            // Log error
+            perror("Shutting server down.");
+            break;
+        }
+
         int accepted_conn = accept(socket_fd, (struct sockaddr*)&client_addr, &client_addr_len);
 
         if (accepted_conn < 0) 
         {
-            perror("Failed to accept connection");
-            continue;
+            if (errno == EINTR)
+            {
+                continue;
+            }
+            perror("Accept failed");
+            break;
         }
 
         char buffer[MAX_MESSAGE_SIZE] = {0};
@@ -158,16 +187,11 @@ int main()
         {
             free(result);
             result = NULL;
-            // cJSON_Delete(conf_json_data);
             close(accepted_conn);
         }
     }
 
-    stop_server:
-        cJSON_Delete(conf_json_data);
-        perror("Could not set server port value");
-        return -1;
-
+    cJSON_Delete(conf_json_data);
     close(socket_fd);
     return 0;
 }
