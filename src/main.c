@@ -161,7 +161,7 @@ int main()
             break;
         }
 
-        if (setsockopt(accepted_conn, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout) < 0))
+        if (setsockopt(accepted_conn, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
         {
             perror("setsockopt failed");
         }

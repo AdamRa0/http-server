@@ -244,8 +244,6 @@ void request_parser(char* data, HTTPParserResult* result)
     printf("Request body: %s\n", result->request_body);
 
     // Handle request within 30 seconds
-    alarm(30);
-
 
     handle_request(result, &headers_map);
 
