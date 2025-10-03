@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -24,6 +25,10 @@ void signal_handler(int signal_num)
 
 int main()
 {
+
+    struct timeval timeout;
+    timeout.tv_sec = 30;
+    timeout.tv_usec = 0;
 
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
@@ -125,14 +130,8 @@ int main()
 
     while(1)
     {
-        struct sockaddr_in6 client_addr;
-        socklen_t client_addr_len = sizeof(client_addr);
-
-        HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
-        result->config_data = conf_json_data;
-
-        enum ConnectionStatus client_connection_status;
-
+        enum ConnectionStatus client_connection_status = KEEP_ALIVE;
+        
         if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
         {
             // Log error
@@ -140,53 +139,91 @@ int main()
             break;
         }
 
+        struct sockaddr_in6 client_addr;
+        socklen_t client_addr_len = sizeof(client_addr);
+
+        HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
+        memset(result, 0, sizeof(HTTPParserResult));
+
+        result->config_data = conf_json_data;
+
         int accepted_conn = accept(socket_fd, (struct sockaddr*)&client_addr, &client_addr_len);
 
         if (accepted_conn < 0) 
         {
             if (errno == EINTR)
             {
+                free(result);
+                result = NULL;
                 continue;
             }
             perror("Accept failed");
             break;
         }
 
-        char buffer[MAX_MESSAGE_SIZE] = {0};
-
-        ssize_t read_bytes = recv(accepted_conn, buffer, sizeof(buffer) - 1, 0);
-
-        if (read_bytes > 0)
+        if (setsockopt(accepted_conn, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout) < 0))
         {
-            buffer[read_bytes] = '\0';
-            // TODO: Remove after validation and parsing features complete
-            printf("Client message: %s\n", buffer);
-
-            request_parser(buffer, result);
-            client_connection_status = result->connection_status;
-        } 
-        
-        else if (read_bytes == 0)
-        {
-            printf("Connection closed by client\n");
+            perror("setsockopt failed");
         }
 
-        else
+        while (client_connection_status == KEEP_ALIVE)
         {
-            perror("Failed to receive message");
+            char buffer[MAX_MESSAGE_SIZE] = {0};
+    
+            ssize_t read_bytes = recv(accepted_conn, buffer, sizeof(buffer) - 1, 0);
+    
+            if (read_bytes > 0)
+            {
+                buffer[read_bytes] = '\0';
+                // TODO: Remove after validation and parsing features complete
+                printf("Client message: %s\n", buffer);
+    
+                request_parser(buffer, result);
+                client_connection_status = result->connection_status;
+            } 
+            
+            else if (read_bytes == 0)
+            {
+                printf("Connection closed by client\n");
+                free(result);
+                break;
+            }
+    
+            else
+            {
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    printf("Timeout waiting for request\n");
+                }
+                else
+                {
+                    perror("Failed to receive message\n");
+                }
+                free(result);
+                break;
+            }
+    
+            if (result->response_body)
+            {
+                write(accepted_conn, result->response_body, strlen(result->response_body));
+                if(result->data_mime_type) free(result->data_mime_type);
+                result->data_mime_type=NULL;
+    
+                if(result->data_content) free(result->data_content);
+                result->data_content=NULL;
+    
+                free(result->response_body);
+                result->response_body=NULL;
+            }
+            
+            if (client_connection_status != KEEP_ALIVE)
+            {
+                printf("Closing connection...\n");
+            }
         }
-
-        if (result->response_body)
-        {
-            write(accepted_conn, result->response_body, strlen(result->response_body));
-        }
-        
-        if (client_connection_status != KEEP_ALIVE)
-        {
-            free(result);
-            result = NULL;
-            close(accepted_conn);
-        }
+    
+        close(accepted_conn);
+        printf("Connection closed.\n");
     }
 
     cJSON_Delete(conf_json_data);

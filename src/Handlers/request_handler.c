@@ -18,8 +18,6 @@
 
 void handle_request(HTTPParserResult* result, HashTable* h_dict)
 {
-    result->request_handled = false;
-
     parse_headers(result->headers, h_dict);
 
     const char* host = get_header_value("Host", h_dict);
@@ -124,6 +122,8 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
             char* uri = result->URI ? result->URI : "/";
 
             const char* filename;
+            
+            printf("Uri: %s\n", uri);
 
             if (strcmp(uri, "/") == 0 || uri[0] == '\0') 
             {
@@ -152,6 +152,4 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
         default:
             break;
     }
-
-    result->request_handled = true;
 }

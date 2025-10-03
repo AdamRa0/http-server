@@ -22,7 +22,6 @@ enum ConnectionStatus {
 };
 
 typedef struct HTTPParserResult{
-    bool request_handled;
     enum HTTPMethods method;
     enum ConnectionStatus connection_status;
     float http_version;
@@ -30,6 +29,8 @@ typedef struct HTTPParserResult{
     char* headers;
     char* request_body;
     char* response_body;
+    char* data_mime_type;
+    char* data_content;
     cJSON* config_data;
     cJSON* web_page_root;
     cJSON* error_page_root;

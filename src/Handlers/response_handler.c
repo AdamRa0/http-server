@@ -143,24 +143,30 @@ void set_server_response(HTTPParserResult* result, char* filename)
 
     char* response = (char* ) malloc(RESPONSE_SIZE);
     char date_buffer[DATE_BUFFER_SIZE];
-
+    
     time_t now = time(NULL);
     struct tm* gmt_time = gmtime(&now);
-
+    
     strftime(date_buffer, sizeof(date_buffer), "%a, %d %b %Y %H:%M:%S GMT", gmt_time);
-
+    
     if (response_type == RESPONSE_TYPE_ERROR)
     {
+        result->data_mime_type = file_data.mime_type;
+        result->data_content = file_data.file_content;
         snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, file_data.file_content);
     }
 
     if (response_type == RESPONSE_TYPE_OK)
     {
+        result->data_mime_type = file_data.mime_type;
+        result->data_content = file_data.file_content;
         snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, file_data.file_content);
     }
 
     if (response_type == RESPONSE_TYPE_OK_HEAD)
     {
+        result->data_mime_type = file_data.mime_type;
+        result->data_content = "";
         snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, "");
     }
 
@@ -171,6 +177,8 @@ void set_server_response(HTTPParserResult* result, char* filename)
 
     if (response_type == RESPONSE_TYPE_NOT_FOUND)
     {
+        result->data_mime_type = not_found_data.mime_type;
+        result->data_content = not_found_data.file_content;
         snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE, status_code, status, date_buffer, not_found_data.mime_type, not_found_data.file_size, not_found_data.file_content);
     }
 

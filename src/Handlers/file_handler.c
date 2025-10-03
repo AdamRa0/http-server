@@ -94,6 +94,12 @@ FileData read_file(const char* filepath)
     
     fd = fopen(filepath, "rb");
 
+    if (fd == NULL)
+    {
+        data.operation_msg = COULD_NOT_READ_FILE_ERROR;
+        return data;
+    }
+
     if (errno == EIO)
     {
         data.operation_msg = COULD_NOT_READ_FILE_ERROR;
@@ -102,7 +108,14 @@ FileData read_file(const char* filepath)
 
     size_t file_size = (size_t)st.st_size;
 
-    file_buffer = (char* ) malloc(file_size);
+    file_buffer = (char* ) malloc(file_size + 1);
+
+    if (file_buffer == NULL)
+    {
+        fclose(fd);
+        data.operation_msg = COULD_NOT_READ_FILE_ERROR;
+        return data;
+    }
 
     size_t res = fread(file_buffer, 1, file_size, fd);
 
@@ -114,6 +127,7 @@ FileData read_file(const char* filepath)
         return data;
     }
 
+    file_buffer[file_size] = '\0';
     data.file_content = file_buffer;
     data.file_size = res;
 
@@ -151,7 +165,7 @@ FileData read_file(const char* filepath)
 
     if (strcmp(mime_type, "application/json") == 0 || strcmp(mime_type, "application/xml") == 0 || starts_with_text(mime_type))
     {
-        const char* proper_mime_type = add_charset(strdup(mime_type));
+        const char* proper_mime_type = add_charset(mime_type);
     
         data.mime_type = proper_mime_type;
     } else 

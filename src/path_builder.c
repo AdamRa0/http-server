@@ -14,6 +14,8 @@ char* build_path(const char* filename, const char* file_root, const char* error_
         size_t len = strlen(file_root) + strlen(filename) + 2;
         path = malloc(len);
         snprintf(path, len, "%s/%s", file_root, filename);
+
+        printf("File path: %s\n", path);
     } else if (error_page_root)
     {
         size_t len = strlen(error_page_root) + strlen(filename) + 2;
