@@ -123,8 +123,6 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
             const char* filename;
             
-            printf("Uri: %s\n", uri);
-
             if (strcmp(uri, "/") == 0 || uri[0] == '\0') 
             {
                 filename = result->default_index_file->valuestring;

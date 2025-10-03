@@ -16,4 +16,6 @@ const char* add_charset(const char* mime_type);
 
 bool starts_with_text(const char* mime_type);
 
+const char* get_mime_type_from_extension(const char* filepath);
+
 #endif

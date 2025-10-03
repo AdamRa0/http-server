@@ -3,13 +3,75 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <magic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+/*
+@brief checks and returns file mime type from extension
+@return const char*
+
+@param filepath const char*
+*/
+const char* get_mime_type_from_extension(const char* filepath)
+{
+    const char* ext = strrchr(filepath, '.');
+    if (!ext) return "application/octet-stream";
+    
+    ext++;
+    
+    if (strcasecmp(ext, "html") == 0 || strcasecmp(ext, "htm") == 0)
+        return "text/html";
+    else if (strcasecmp(ext, "css") == 0)
+        return "text/css";
+    else if (strcasecmp(ext, "js") == 0)
+        return "text/javascript";
+    else if (strcasecmp(ext, "json") == 0)
+        return "application/json";
+    else if (strcasecmp(ext, "xml") == 0)
+        return "application/xml";
+    else if (strcasecmp(ext, "png") == 0)
+        return "image/png";
+    else if (strcasecmp(ext, "jpg") == 0 || strcasecmp(ext, "jpeg") == 0)
+        return "image/jpeg";
+    else if (strcasecmp(ext, "gif") == 0)
+        return "image/gif";
+    else if (strcasecmp(ext, "svg") == 0)
+        return "image/svg+xml";
+    else if (strcasecmp(ext, "webp") == 0)
+        return "image/webp";
+    else if (strcasecmp(ext, "ico") == 0)
+        return "image/x-icon";
+    else if (strcasecmp(ext, "pdf") == 0)
+        return "application/pdf";
+    else if (strcasecmp(ext, "zip") == 0)
+        return "application/zip";
+    else if (strcasecmp(ext, "tar") == 0)
+        return "application/x-tar";
+    else if (strcasecmp(ext, "gz") == 0)
+        return "application/gzip";
+    else if (strcasecmp(ext, "mp4") == 0)
+        return "video/mp4";
+    else if (strcasecmp(ext, "mp3") == 0)
+        return "audio/mpeg";
+    else if (strcasecmp(ext, "wav") == 0)
+        return "audio/wav";
+    else if (strcasecmp(ext, "woff") == 0)
+        return "font/woff";
+    else if (strcasecmp(ext, "woff2") == 0)
+        return "font/woff2";
+    else if (strcasecmp(ext, "ttf") == 0)
+        return "font/ttf";
+    else if (strcasecmp(ext, "otf") == 0)
+        return "font/otf";
+    else if (strcasecmp(ext, "txt") == 0)
+        return "text/plain";
+    else
+        return "application/octet-stream";
+}
 
 /*
 @brief checks if mime type starts with text
@@ -133,32 +195,12 @@ FileData read_file(const char* filepath)
 
     fclose(fd);
 
-    magic_t cookie = magic_open(MAGIC_MIME_TYPE);
-
-    if (!cookie)
-    {
-        fprintf(stderr, "Unable to initialize magic library.\n");
-        data.mime_type = NULL;
-
-        return data;
-    }
-
-    if (magic_load(cookie, NULL) != 0)
-    {
-        fprintf(stderr, "Unable to load magic database: %s\n", magic_error(cookie));
-        data.mime_type = NULL;
-        magic_close(cookie);
-
-        return data;
-    }
-
-    const char* mime_type = magic_file(cookie, filepath);
+    const char* mime_type = get_mime_type_from_extension(filepath);
 
     if (!mime_type)
     {
-        fprintf(stderr, "Unable to find file MIME type: %s\n", magic_error(cookie));
+        fprintf(stderr, "Unable to find file MIME type\n");
         data.mime_type = NULL;
-        magic_close(cookie);
 
         return data;
     }
@@ -170,10 +212,8 @@ FileData read_file(const char* filepath)
         data.mime_type = proper_mime_type;
     } else 
     {
-        data.mime_type = strdup(mime_type);
+        data.mime_type = mime_type;
     }
     
-    magic_close(cookie);
-
     return data;
 }
