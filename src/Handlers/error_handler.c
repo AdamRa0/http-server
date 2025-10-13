@@ -12,7 +12,7 @@ void bad_request_handler(HTTPParserResult* result)
     const char* filename = "400.html";
     char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
-    set_server_response(result, path);
+    set_server_response(result, path, NULL);
 }
 
 void server_error_handler(HTTPParserResult* result)
@@ -20,5 +20,5 @@ void server_error_handler(HTTPParserResult* result)
     const char* filename = "500.html";
     char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
-    set_server_response(result, path);
+    set_server_response(result, path, NULL);
 }

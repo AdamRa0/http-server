@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -203,6 +204,10 @@ int main()
                 break;
             }
 
+            int cork = 1;
+
+            setsockopt(accepted_conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
+
             if (result->response_headers)
             {
                 send(accepted_conn, result->response_headers, result->response_headers_size, 0);
@@ -220,6 +225,9 @@ int main()
                 result->data_content=NULL;
             }
 
+            cork = 0;
+            setsockopt(accepted_conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
+
             if (result->URI) free(result->URI);
             result->URI = NULL;
 
@@ -229,6 +237,8 @@ int main()
             if (result->request_body) free(result->request_body);
             result->request_body = NULL;
             
+            client_connection_status = result->connection_status;
+
             if (client_connection_status != KEEP_ALIVE)
             {
                 printf("Closing connection...\n");

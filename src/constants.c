@@ -22,6 +22,7 @@ const char* SERVER_OK_RESPONSE_HEADER = "HTTP/1.1 %d %s\r\n"
     "Date: %s\r\n"
     "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n"
+    "Connection: %s\r\n"
     "X-Content-Type-Options: nosniff\r\n"
     "\r\n";
 
@@ -29,6 +30,7 @@ const char* SERVER_OPTIONS_RESPONSE_HEADER = "HTTP/1.1 %d %s\r\n"
     "Allow: %s\r\n"
     "Date: %s\r\n"
     "Server: Cerver/1.0 (Linux)\r\n"
+    "Connection: %s\r\n"
     "X-Content-Type-Options: nosniff\r\n"
     "\r\n";
 

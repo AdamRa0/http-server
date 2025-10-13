@@ -2,6 +2,8 @@
 
 #include "../constants.h"
 #include "../path_builder.h"
+#include "../DataStructures/hash_table.h"
+#include "../Parsers/headers.h"
 #include "../Parsers/http_req_parser.h"
 
 #include <ctype.h>
@@ -26,7 +28,7 @@
 @param filename: Static file to serve
 @param file_mime_type: Mime type which acts as header
 */
-void set_server_response(HTTPParserResult* result, char* filename)
+void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_dict)
 {
 
     FileData file_data;
@@ -35,6 +37,8 @@ void set_server_response(HTTPParserResult* result, char* filename)
     int status_code;
     const char* status = NULL;
     const char* response_type;
+
+    char* connection_header_value = h_dict ? get_header_value("Connection", h_dict) : NULL;
 
     switch(result->method)
     {
@@ -154,7 +158,7 @@ void set_server_response(HTTPParserResult* result, char* filename)
         result->data_mime_type = strdup(file_data.mime_type);
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
-        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, file_data.file_content);
+        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size);
     }
 
     if (response_type == RESPONSE_TYPE_OK)
@@ -162,7 +166,7 @@ void set_server_response(HTTPParserResult* result, char* filename)
         result->data_mime_type = strdup(file_data.mime_type);
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
-        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, file_data.file_content);
+        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
     }
 
     if (response_type == RESPONSE_TYPE_OK_HEAD)
@@ -170,12 +174,12 @@ void set_server_response(HTTPParserResult* result, char* filename)
         result->data_mime_type = strdup(file_data.mime_type);
         result->data_content = "";
         result->response_size = file_data.file_size;
-        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, "");
+        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
     }
 
     if (response_type == RESPONSE_TYPE_OPTIONS)
     {
-        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OPTIONS_RESPONSE_HEADER, status_code, status, SERVER_OPTIONS, date_buffer);
+        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OPTIONS_RESPONSE_HEADER, status_code, status, SERVER_OPTIONS, date_buffer, connection_header_value);
     }
 
     if (response_type == RESPONSE_TYPE_NOT_FOUND)
@@ -183,7 +187,7 @@ void set_server_response(HTTPParserResult* result, char* filename)
         result->data_mime_type = strdup(not_found_data.mime_type);
         result->data_content = not_found_data.file_content;
         result->response_size = not_found_data.file_size;
-        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, not_found_data.mime_type, not_found_data.file_size, not_found_data.file_content);
+        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, not_found_data.mime_type, not_found_data.file_size);
     }
 
     result->response_headers = response;

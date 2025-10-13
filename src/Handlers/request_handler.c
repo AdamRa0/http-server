@@ -72,10 +72,10 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
     {
         case HEAD:
             char* default_path = build_path(result->default_index_file->valuestring, result->web_page_root->valuestring, NULL, false);
-            set_server_response(result, default_path);
+            set_server_response(result, default_path, h_dict);
             break;
         case OPTIONS:
-            set_server_response(result, NULL);
+            set_server_response(result, NULL, h_dict);
             break;
         case PATCH:
             if (!result->request_body)
@@ -136,7 +136,8 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
             char* file_path = build_path(filename, result->web_page_root->valuestring, NULL, false);
             parse_headers(result->headers, h_dict);
-            set_server_response(result, file_path);
+            set_connection_status(result, h_dict);
+            set_server_response(result, file_path, h_dict);
             break;
         case TRACE:
             server_error_handler(result);
