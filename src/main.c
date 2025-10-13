@@ -202,19 +202,32 @@ int main()
                 free(result);
                 break;
             }
-    
-            if (result->response_body)
+
+            if (result->response_headers)
             {
-                write(accepted_conn, result->response_body, strlen(result->response_body));
+                send(accepted_conn, result->response_headers, result->response_headers_size, 0);
+                free(result->response_headers);
+                result->response_headers = NULL;
+            }
+    
+            if (result->data_content)
+            {
+                send(accepted_conn, result->data_content, result->response_size, 0);
                 if(result->data_mime_type) free(result->data_mime_type);
                 result->data_mime_type=NULL;
     
                 if(result->data_content) free(result->data_content);
                 result->data_content=NULL;
-    
-                free(result->response_body);
-                result->response_body=NULL;
             }
+
+            if (result->URI) free(result->URI);
+            result->URI = NULL;
+
+            if (result->headers) free(result->headers);
+            result->headers = NULL;
+
+            if (result->request_body) free(result->request_body);
+            result->request_body = NULL;
             
             if (client_connection_status != KEEP_ALIVE)
             {

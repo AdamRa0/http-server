@@ -8,26 +8,24 @@ const char* CONTENT_LENGTH_HEADER_NAME = "Content-Length";
 const char* CONTENT_TYPE_HEADER_NAME = "Content-Type";
 const char* ENTRY_TYPE_SINGLE = "single-value";
 const char* ENTRY_TYPE_MULTI_PARAM = "multi-param";
-const char* SERVER_ERROR_RESPONSE = "HTTP/1.1 %d %s\r\n"
+const char* SERVER_ERROR_RESPONSE_HEADER = "HTTP/1.1 %d %s\r\n"
     "Server: Cerver/1.0 (Linux)\r\n"
     "Date: %s\r\n"
     "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n"
     "Connection: close\r\n"
     "X-Content-Type-Options: nosniff\r\n"
-    "\r\n"
-    "%s";
+    "\r\n";
 
-const char* SERVER_OK_RESPONSE = "HTTP/1.1 %d %s\r\n"
+const char* SERVER_OK_RESPONSE_HEADER = "HTTP/1.1 %d %s\r\n"
     "Server: Cerver/1.0 (Linux)\r\n"
     "Date: %s\r\n"
     "Content-Type: %s\r\n"
     "Content-Length: %zu\r\n"
     "X-Content-Type-Options: nosniff\r\n"
-    "\r\n"
-    "%s";
+    "\r\n";
 
-const char* SERVER_OPTIONS_RESPONSE = "HTTP/1.1 %d %s\r\n"
+const char* SERVER_OPTIONS_RESPONSE_HEADER = "HTTP/1.1 %d %s\r\n"
     "Allow: %s\r\n"
     "Date: %s\r\n"
     "Server: Cerver/1.0 (Linux)\r\n"

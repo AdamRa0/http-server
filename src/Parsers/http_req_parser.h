@@ -3,6 +3,8 @@
 
 #include "../cJSON/cJSON.h"
 
+#include <stddef.h>
+
 enum HTTPMethods {
     GET,
     POST,
@@ -28,7 +30,9 @@ typedef struct HTTPParserResult{
     char* URI;
     char* headers;
     char* request_body;
-    char* response_body;
+    char* response_headers;
+    size_t response_size;
+    size_t response_headers_size;
     char* data_mime_type;
     char* data_content;
     cJSON* config_data;
