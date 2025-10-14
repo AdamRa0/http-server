@@ -31,8 +31,10 @@ $(BIN_DIR):
 dev: all
 	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
 	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
 
 	install -m 644 conf/* $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
+	install -m 644 logs/* $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
 
 	cp -r $(HTML_DIR) $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
@@ -43,10 +45,12 @@ install: all
 	install -d $(DESTDIR)$(PREFIX)/$(BIN_DIR)
 	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
 	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
 
 	install -m 755 $(OUTPUT) $(DESTDIR)$(PREFIX)/$(BIN_DIR)
 
 	install -m 644 conf/* $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
+	install -m 644 logs/* $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
 
 	cp -r $(HTML_DIR) $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
