@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <signal.h>
@@ -165,6 +166,17 @@ int main()
         if (setsockopt(accepted_conn, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
         {
             perror("setsockopt failed");
+        }
+
+        getpeername(accepted_conn, (struct sockaddr*)&client_addr, &client_addr_len);
+
+        char client_ip[INET_ADDRSTRLEN];
+
+        if (IN6_IS_ADDR_V4MAPPED(&(client_addr.sin6_addr)))
+        {
+            struct in_addr client_ipv4;
+            memcpy(&(client_ipv4), client_addr.sin6_addr.s6_addr + 12, 4);
+            inet_ntop(AF_INET, &(client_ipv4), client_ip, INET_ADDRSTRLEN);
         }
 
         while (client_connection_status == KEEP_ALIVE)
