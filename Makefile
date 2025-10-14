@@ -2,6 +2,7 @@ PROGRAM_NAME := cerver
 CONF_DIR := /etc
 PREFIX := /usr/local
 WEBROOT := /var/www
+LOGROOT := /var/log
 
 CC := gcc
 
@@ -31,10 +32,10 @@ $(BIN_DIR):
 dev: all
 	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
 	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
-	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
+	install -d $(DESTDIR)$(LOGROOT)/$(PROGRAM_NAME)
 
 	install -m 644 conf/* $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
-	install -m 644 logs/* $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
+	install -m 644 logs/* $(DESTDIR)$(LOGROOT)/$(PROGRAM_NAME)
 
 	cp -r $(HTML_DIR) $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
@@ -45,12 +46,12 @@ install: all
 	install -d $(DESTDIR)$(PREFIX)/$(BIN_DIR)
 	install -d $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
 	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
-	install -d $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
+	install -d $(DESTDIR)$(LOGROOT)/$(PROGRAM_NAME)
 
 	install -m 755 $(OUTPUT) $(DESTDIR)$(PREFIX)/$(BIN_DIR)
 
 	install -m 644 conf/* $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)/conf
-	install -m 644 logs/* $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)/logs
+	install -m 644 logs/* $(DESTDIR)$(LOGROOT)/$(PROGRAM_NAME)
 
 	cp -r $(HTML_DIR) $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
 
@@ -63,11 +64,14 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/$(BIN_DIR)/$(PROGRAM_NAME)
 	rm -rf $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)
 	rm -rf $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+	rm -rf $(DESTDIR)$(LOGROOT)/$(PROGRAM_NAME)
 
 clean:
 	rm -f $(OBJS) $(OUTPUT)
 
 	rm -rf $(DESTDIR)$(CONF_DIR)/$(PROGRAM_NAME)
 	rm -rf $(DESTDIR)$(WEBROOT)/$(PROGRAM_NAME)
+	rm -rf $(DESTDIR)$(LOGROOT)/$(PROGRAM_NAME)
+
 
 .PHONY: all clean dev install uninstall
