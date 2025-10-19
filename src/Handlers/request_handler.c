@@ -22,11 +22,12 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
     const char* host = get_header_value("Host", h_dict);
 
-    // if (host == NULL)
-    // {
-    //     TODO: log error, serve error page
-    //     return;
-    // }
+    if (host == NULL)
+    {
+        result->error_message = "Invalid host header value.";
+        server_error_handler(result);
+        return;
+    }
 
     cJSON* appropriate_server_block = NULL;
     cJSON* server;
@@ -48,7 +49,8 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
     if (cJSON_IsNull(application_block))
     {
-        // TODO: log error, serve error page
+        result->error_message = "Could not resolve application block in configuration.";
+        server_error_handler(result);
         return;       
     }
 
@@ -56,7 +58,8 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
     if (cJSON_IsNull(application_uri_path))
     {
-        // TODO: log error, serve error page
+        result->error_message = "Invalid home path.";
+        server_error_handler(result);
         return;        
     }
 
@@ -67,7 +70,6 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
         result->error_page_root = cJSON_GetObjectItemCaseSensitive(application_block, "error_pages");
     }
 
-    // Method handling
     switch(result->method)
     {
         case HEAD:

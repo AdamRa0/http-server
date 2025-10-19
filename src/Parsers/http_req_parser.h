@@ -36,6 +36,7 @@ typedef struct HTTPParserResult{
     size_t response_headers_size;
     char* data_mime_type;
     char* data_content;
+    char* error_message;
     cJSON* config_data;
     cJSON* web_page_root;
     cJSON* error_page_root;
