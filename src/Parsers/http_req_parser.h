@@ -24,6 +24,7 @@ enum ConnectionStatus {
 };
 
 typedef struct HTTPParserResult{
+    char* client_ip;
     enum HTTPMethods method;
     enum ConnectionStatus connection_status;
     float http_version;

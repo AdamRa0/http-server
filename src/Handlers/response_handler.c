@@ -1,4 +1,5 @@
 #include "file_handler.h"
+#include "logging_handler.h"
 
 #include "../constants.h"
 #include "../path_builder.h"
@@ -15,6 +16,7 @@
 
 #define RESPONSE_SIZE 1024
 #define DATE_BUFFER_SIZE 64
+#define LOG_CONTENT_SIZE 10 * 1024
 
 
 /*
@@ -37,6 +39,9 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
     int status_code;
     const char* status = NULL;
     const char* response_type;
+    const char* request_method;
+
+    char LOG_CONTENT[LOG_CONTENT_SIZE];
 
     char* connection_header_value = h_dict ? get_header_value("Connection", h_dict) : NULL;
 
@@ -88,6 +93,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
                 }
                 
             }
+            request_method = "GET";
             break;
         case HEAD:
             if (filename)
@@ -135,11 +141,13 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
                 }
                 
             }
+            request_method = "HEAD";
             break;
         case OPTIONS:
             status_code = NO_CONTENT_STATUS_CODE;
             status = NO_CONTENT_STATUS;
             response_type = RESPONSE_TYPE_OPTIONS;
+            request_method = "OPTIONS";
             break;
         default:
             break;
@@ -159,6 +167,10 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size);
+
+        snprintf(LOG_CONTENT, LOG_CONTENT_SIZE, ERROR_LOG, date_buffer, result->client_ip, file_data.operation_msg);
+
+        if (write_log(ERROR_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");
     }
 
     if (response_type == RESPONSE_TYPE_OK)
@@ -167,6 +179,10 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
+
+        snprintf(LOG_CONTENT, LOG_CONTENT_SIZE, ACCESS_LOG, date_buffer, result->client_ip, request_method, filename, status_code);
+
+        if (write_log(ACCESS_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");
     }
 
     if (response_type == RESPONSE_TYPE_OK_HEAD)
@@ -175,11 +191,19 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
         result->data_content = "";
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
+
+        snprintf(LOG_CONTENT, LOG_CONTENT_SIZE, ACCESS_LOG, date_buffer, result->client_ip, request_method, filename, status_code);
+
+        if (write_log(ACCESS_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");
     }
 
     if (response_type == RESPONSE_TYPE_OPTIONS)
     {
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OPTIONS_RESPONSE_HEADER, status_code, status, SERVER_OPTIONS, date_buffer, connection_header_value);
+
+        snprintf(LOG_CONTENT, LOG_CONTENT_SIZE, ACCESS_LOG, date_buffer, result->client_ip, request_method, filename, status_code);
+
+        if (write_log(ACCESS_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");
     }
 
     if (response_type == RESPONSE_TYPE_NOT_FOUND)
@@ -188,6 +212,9 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
         result->data_content = not_found_data.file_content;
         result->response_size = not_found_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, not_found_data.mime_type, not_found_data.file_size);
+        snprintf(LOG_CONTENT, LOG_CONTENT_SIZE, ERROR_LOG, date_buffer, result->client_ip, file_data.operation_msg);
+
+        if (write_log(ERROR_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");
     }
 
     result->response_headers = response;

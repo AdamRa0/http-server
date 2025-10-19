@@ -29,7 +29,7 @@ int main()
 {
 
     struct timeval timeout;
-    timeout.tv_sec = 30;
+    timeout.tv_sec = 5;
     timeout.tv_usec = 0;
 
     struct sigaction sa;
@@ -136,7 +136,6 @@ int main()
         
         if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
         {
-            // Log error
             perror("Shutting server down.");
             break;
         }
@@ -170,7 +169,7 @@ int main()
 
         getpeername(accepted_conn, (struct sockaddr*)&client_addr, &client_addr_len);
 
-        char client_ip[INET_ADDRSTRLEN];
+        char* client_ip = (char* ) malloc(INET6_ADDRSTRLEN);
 
         if (IN6_IS_ADDR_V4MAPPED(&(client_addr.sin6_addr)))
         {
@@ -178,6 +177,12 @@ int main()
             memcpy(&(client_ipv4), client_addr.sin6_addr.s6_addr + 12, 4);
             inet_ntop(AF_INET, &(client_ipv4), client_ip, INET_ADDRSTRLEN);
         }
+        else
+        {
+            inet_ntop(AF_INET6, &(client_addr.sin6_addr), client_ip, INET6_ADDRSTRLEN);
+        }
+
+        result->client_ip = client_ip;
 
         while (client_connection_status == KEEP_ALIVE)
         {
@@ -198,7 +203,6 @@ int main()
             else if (read_bytes == 0)
             {
                 printf("Connection closed by client\n");
-                free(result);
                 break;
             }
     
@@ -212,7 +216,6 @@ int main()
                 {
                     perror("Failed to receive message\n");
                 }
-                free(result);
                 break;
             }
 
@@ -230,24 +233,39 @@ int main()
             if (result->data_content)
             {
                 send(accepted_conn, result->data_content, result->response_size, 0);
-                if(result->data_mime_type) free(result->data_mime_type);
-                result->data_mime_type=NULL;
+                if(result->data_mime_type) 
+                {
+                    free(result->data_mime_type);
+                    result->data_mime_type=NULL;
+                }
     
-                if(result->data_content) free(result->data_content);
-                result->data_content=NULL;
+                if(result->data_content) 
+                {
+                    free(result->data_content);
+                    result->data_content=NULL;
+                }
             }
 
             cork = 0;
             setsockopt(accepted_conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
 
-            if (result->URI) free(result->URI);
-            result->URI = NULL;
+            if (result->URI) 
+            {
+                free(result->URI);
+                result->URI = NULL;
+            }
 
-            if (result->headers) free(result->headers);
-            result->headers = NULL;
+            if (result->headers) 
+            {
+                free(result->headers);
+                result->headers = NULL;
+            }
 
-            if (result->request_body) free(result->request_body);
-            result->request_body = NULL;
+            if (result->request_body) 
+            {
+                free(result->request_body);
+                result->request_body = NULL;
+            }
             
             client_connection_status = result->connection_status;
 
@@ -257,6 +275,18 @@ int main()
             }
         }
     
+        if (result->client_ip) 
+        {
+            free(result->client_ip);
+            result->client_ip = NULL;
+        }
+
+        if (result)
+        {
+            free(result);
+            result = NULL;
+        }
+
         close(accepted_conn);
         printf("Connection closed.\n");
     }

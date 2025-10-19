@@ -51,3 +51,5 @@ const char* RESPONSE_TYPE_ERROR = "error";
 const char* RESPONSE_TYPE_OPTIONS = "options";
 const char* RESPONSE_TYPE_NOT_FOUND = "not_found";
 const char* SERVER_OPTIONS = "GET, PUT, PATCH, POST, DELETE, OPTIONS, HEAD";
+const char* ACCESS_LOG = "%s - %s: %s, %s, %d\n";
+const char* ERROR_LOG = "%s - %s: %s\n";

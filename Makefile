@@ -21,7 +21,7 @@ OBJS = $(SRCS:.c=.o)
 all: $(OUTPUT)
 
 $(OUTPUT): $(OBJS) | $(BIN_DIR)
-	$(CC) -o $@ $^ -lmagic
+	$(CC) -o $@ $^
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)

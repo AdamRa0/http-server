@@ -4,7 +4,7 @@
 #define UNSUPPORTED_HTTP_VERSION_STATUS_CODE 505
 #define BAD_REQUEST_STATUS_CODE 400
 #define NOT_FOUND_STATUS_CODE 404
-#define OK_STATUS_CODE 200 // Delete later
+#define OK_STATUS_CODE 200
 #define METHOD_NOT_IMPLEMENTED_STATUS_CODE 501
 #define INTERNAL_SERVER_ERROR_STATUS_CODE 500
 #define NO_CONTENT_STATUS_CODE 204
@@ -37,5 +37,7 @@ extern const char* RESPONSE_TYPE_ERROR;
 extern const char* RESPONSE_TYPE_OPTIONS;
 extern const char* RESPONSE_TYPE_NOT_FOUND;
 extern const char* SERVER_OPTIONS;
+extern const char* ACCESS_LOG;
+extern const char* ERROR_LOG;
 
 #endif
