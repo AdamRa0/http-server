@@ -230,7 +230,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
         result->data_mime_type = strdup(file_data.mime_type);
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
-        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_path.mime_type, file_path.file_size);
+        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size);
         snprintf(LOG_CONTENT, LOG_CONTENT_SIZE, ERROR_LOG, date_buffer, result->client_ip, result->error_message);
 
         if (write_log(ERROR_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");

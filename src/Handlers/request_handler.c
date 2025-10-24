@@ -9,6 +9,7 @@
 #include "../Parsers/headers.h"
 #include "../Parsers/http_req_parser.h"
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -136,18 +137,31 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
                 filename = uri;
             }
 
-            char* file_path = build_path(filename, result->web_page_root->valuestring, NULL, false);
+            char* safe_url = is_url_safe(filename);
+
+            if (!safe_url)
+            {
+                result->error_message = "Attempted traversal attack detected";
+                forbidden_request_handler(result);
+                break;
+            }
+
+            char* file_path = build_path(safe_url, result->web_page_root->valuestring, NULL, false);
+            free(safe_url);
 
             if (!is_path_safe(file_path, result->web_page_root->valuestring))
             {
                 result->error_message = "Attempted traversal attack detected";
-
+                free(file_path);
                 forbidden_request_handler(result);
+            } else
+            {
+                parse_headers(result->headers, h_dict);
+                set_connection_status(result, h_dict);
+                set_server_response(result, file_path, h_dict);
+                free(file_path);
             }
 
-            parse_headers(result->headers, h_dict);
-            set_connection_status(result, h_dict);
-            set_server_response(result, file_path, h_dict);
             break;
         case TRACE:
             server_error_handler(result);

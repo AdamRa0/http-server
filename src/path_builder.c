@@ -1,5 +1,6 @@
 #include "constants.h"
 
+#include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,8 +35,8 @@ char* build_path(const char* filename, const char* file_root, const char* error_
 
 int is_path_safe(const char* requested_path, const char* webroot)
 {
-    char resolved_path[PATHS_MAX];
-    char resolved_webroot[PATHS_MAX];
+    char resolved_path[PATH_MAX];
+    char resolved_webroot[PATH_MAX];
 
     if (realpath(requested_path, resolved_path) == NULL)
     {
@@ -55,4 +56,95 @@ int is_path_safe(const char* requested_path, const char* webroot)
     }
 
     return 1;
+}
+
+int hex_to_int(char c)
+{
+    if (c >= '0' && c <= '9')
+    {
+        return c - '0';
+    }
+
+    if (c >= 'a' && c <= 'f')
+    {
+        return c - 'a' + 10;
+    }
+
+    if (c >= 'A' && c <= 'F')
+    {
+        return c - 'A' + 10;
+    }
+
+    return 0;
+}
+
+char* decode_url(const char* url)
+{
+    size_t len = strlen(url);
+    char* decoded = (char* ) malloc(len + 1);
+    
+    if (!decoded) return NULL;
+    
+    const char* src = url;
+    char* dst = decoded;
+    
+    while (*src) {
+        if (*src == '%' && isxdigit(src[1]) && isxdigit(src[2])) {
+            *dst = (hex_to_int(src[1]) << 4) | hex_to_int(src[2]);
+            src += 3;
+            dst++;
+        }
+        else if (*src == '+') {
+            *dst = ' ';
+            src++;
+            dst++;
+        }
+        else {
+            *dst = *src;
+            src++;
+            dst++;
+        }
+    }
+    *dst = '\0';
+    
+    return decoded;
+}
+
+int contains_traversal(const char* url) {
+    if (!url) return 1;
+    
+    if (strstr(url, "..") != NULL) return 1;
+    
+    if (strncmp(url, "/etc/", 5) == 0) return 1;
+    if (strncmp(url, "/usr/", 5) == 0) return 1;
+    if (strncmp(url, "/var/", 5) == 0) return 1;
+    if (strncmp(url, "/root/", 6) == 0) return 1;
+    if (strncmp(url, "/home/", 6) == 0) return 1;
+    if (strncmp(url, "/tmp/", 5) == 0) return 1;
+    if (strncmp(url, "/proc/", 6) == 0) return 1;
+    if (strncmp(url, "/sys/", 5) == 0) return 1;
+    
+    if (memchr(url, '\0', strlen(url)) != NULL) return 1;
+    
+    if (strchr(url, '\\') != NULL) return 1;
+    
+    return 0;
+}
+
+char* is_url_safe(const char* url)
+{
+    char* decoded_url = decode_url(url);
+
+    if (!decoded_url)
+    {
+        return NULL;
+    }
+
+    if (contains_traversal(decoded_url))
+    {
+        free(decoded_url);
+        return NULL;
+    }
+
+    return decoded_url;
 }
