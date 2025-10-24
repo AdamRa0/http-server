@@ -1,5 +1,6 @@
 #include "constants.h"
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,4 +30,29 @@ char* build_path(const char* filename, const char* file_root, const char* error_
     }
     
     return path;
+}
+
+int is_path_safe(const char* requested_path, const char* webroot)
+{
+    char resolved_path[PATHS_MAX];
+    char resolved_webroot[PATHS_MAX];
+
+    if (realpath(requested_path, resolved_path) == NULL)
+    {
+        return 0;
+    }
+
+    if (realpath(webroot, resolved_webroot) == NULL)
+    {
+        return 0;
+    }
+
+    size_t webroot_len = strlen(resolved_webroot);
+
+    if (strncmp(resolved_path, resolved_webroot, webroot_len) != 0)
+    {
+        return 0;
+    }
+
+    return 1;
 }

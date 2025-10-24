@@ -137,6 +137,14 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
             }
 
             char* file_path = build_path(filename, result->web_page_root->valuestring, NULL, false);
+
+            if (!is_path_safe(file_path, result->web_page_root->valuestring))
+            {
+                result->error_message = "Forbidden from accessing this path";
+
+                forbidden_request_handler(result);
+            }
+
             parse_headers(result->headers, h_dict);
             set_connection_status(result, h_dict);
             set_server_response(result, file_path, h_dict);

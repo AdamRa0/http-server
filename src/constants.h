@@ -8,6 +8,7 @@
 #define METHOD_NOT_IMPLEMENTED_STATUS_CODE 501
 #define INTERNAL_SERVER_ERROR_STATUS_CODE 500
 #define NO_CONTENT_STATUS_CODE 204
+#define FORBIDDEN_STATUS_CODE 403
 
 extern const char* BOUNDARY_HEADER_PARAM;
 extern const char* CONNECTION_HEADER_NAME;
@@ -27,6 +28,7 @@ extern const char* NO_CONTENT_STATUS;
 extern const char* NOT_FOUND_STATUS;
 extern const char* METHOD_NOT_IMPLEMENTED_STATUS;
 extern const char* INTERNAL_SERVER_ERROR_STATUS;
+extern const char* FORBIDDEN_STATUS;
 extern const char* FILE_NOT_EXISTS_ERROR;
 extern const char* FILE_PERMISSIONS_ERROR;
 extern const char* COULD_NOT_READ_FILE_ERROR;
@@ -36,6 +38,7 @@ extern const char* RESPONSE_TYPE_OK_HEAD;
 extern const char* RESPONSE_TYPE_ERROR;
 extern const char* RESPONSE_TYPE_OPTIONS;
 extern const char* RESPONSE_TYPE_NOT_FOUND;
+extern const char* RESPONSE_TYPE_FORBIDDEN;
 extern const char* SERVER_OPTIONS;
 extern const char* ACCESS_LOG;
 extern const char* ERROR_LOG;

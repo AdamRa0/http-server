@@ -3,4 +3,6 @@
 
 char* build_path(const char* filename, const char* file_root, const char* error_page_root, bool is_conf_file);
 
+int is_path_safe(const char* requested_path, const char* webroot);
+
 #endif

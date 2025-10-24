@@ -36,6 +36,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
     FileData file_data;
     FileData not_found_data;
     const char* not_found_file = "404.html";
+    const char* forbidden_file = "403.html";
     int status_code;
     const char* status = NULL;
     const char* response_type;
@@ -87,11 +88,18 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
                     }
                 } else 
                 {
-                    status_code = OK_STATUS_CODE;
-                    status = OK_STATUS;
-                    response_type = RESPONSE_TYPE_OK;
-                }
-                
+                    if (strstr(filename, forbidden_file))
+                    {
+                        status_code = FORBIDDEN_STATUS_CODE;
+                        status = FORBIDDEN_STATUS;
+                        response_type = RESPONSE_TYPE_FORBIDDEN;
+                    } else
+                    {                        
+                        status_code = OK_STATUS_CODE;
+                        status = OK_STATUS;
+                        response_type = RESPONSE_TYPE_OK;
+                    }
+                }                
             }
             request_method = "GET";
             break;
@@ -216,6 +224,17 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
 
         if (write_log(ERROR_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");
     }
+
+    if (response_type == RESPONSE_TYPE_FORBIDDEN)
+    {
+        result->data_mime_type = strdup(file_data.mime_type);
+        result->data_content = file_data.file_content;
+        result->response_size = file_data.file_size;
+        result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_path.mime_type, file_path.file_size);
+        snprintf(LOG_CONTENT, LOG_CONTENT_SIZE, ERROR_LOG, date_buffer, result->client_ip, result->error_message);
+
+        if (write_log(ERROR_LOG_FILE_PATH, LOG_CONTENT) > 0) perror("Failed to write logs");
+    }    
 
     result->response_headers = response;
 }
