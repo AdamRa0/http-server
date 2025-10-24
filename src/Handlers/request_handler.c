@@ -140,7 +140,7 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
 
             if (!is_path_safe(file_path, result->web_page_root->valuestring))
             {
-                result->error_message = "Forbidden from accessing this path";
+                result->error_message = "Attempted traversal attack detected";
 
                 forbidden_request_handler(result);
             }
