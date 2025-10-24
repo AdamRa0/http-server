@@ -88,18 +88,22 @@ char* decode_url(const char* url)
     const char* src = url;
     char* dst = decoded;
     
-    while (*src) {
-        if (*src == '%' && isxdigit(src[1]) && isxdigit(src[2])) {
+    while (*src) 
+    {
+        if (*src == '%' && isxdigit(src[1]) && isxdigit(src[2])) 
+        {
             *dst = (hex_to_int(src[1]) << 4) | hex_to_int(src[2]);
             src += 3;
             dst++;
         }
-        else if (*src == '+') {
+        else if (*src == '+') 
+        {
             *dst = ' ';
             src++;
             dst++;
         }
-        else {
+        else 
+        {
             *dst = *src;
             src++;
             dst++;
