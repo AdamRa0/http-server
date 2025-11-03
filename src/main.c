@@ -19,7 +19,7 @@
 #include "Parsers/http_req_parser.h"
 
 #define MAX_MESSAGE_SIZE 40960
-#define MAX_EVENTS = 10
+#define MAX_EVENTS 10
 
 volatile sig_atomic_t received_signal = 0;
 
@@ -156,7 +156,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    epoll_fd = epoll_create1(0);
+    int epoll_fd = epoll_create1(0);
 
     if (epoll_fd == -1)
     {
@@ -164,11 +164,11 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    struct epoll_events ev, events[MAX_EVENTS];
+    struct epoll_event ev, events[MAX_EVENTS];
     ev.events = EPOLLIN;
     ev.data.fd = socket_fd;
     
-    epoll_registered = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &ev);
+    int epoll_registered = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &ev);
 
     if (epoll_registered == -1)
     {
@@ -178,14 +178,14 @@ int main()
 
     for(;;)
     {
-        no_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);;
+        int no_fds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);;
 
         if (no_fds == -1)
         {
             perror("error in epoll_wait");
-            exit(EXIT_FAILURE);
+            break;
         }
-
+        
         
         if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
         {
@@ -194,8 +194,12 @@ int main()
             close(socket_fd);
         }
         
-        for (int i = 0; i < no_fds, ++i)
+        
+        for (int i = 0; i < no_fds; i++)
         {
+            struct sockaddr_in6 client_addr;
+            socklen_t client_addr_len = sizeof(client_addr);
+
             if (events[i].data.fd == socket_fd)
             {
                 while(1)
@@ -206,8 +210,6 @@ int main()
                     {
                         if (errno == EINTR)
                         {
-                            free(result);
-                            result = NULL;
                             continue;
                         }
                         perror("Accept failed");
@@ -232,171 +234,140 @@ int main()
                 }       
             } else 
             {
+                int conn = events[i].data.fd;
 
+                enum ConnectionStatus client_connection_status = KEEP_ALIVE;
+
+                HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
+                memset(result, 0, sizeof(HTTPParserResult));
+
+                result->config_data = conf_json_data;
+
+                getpeername(conn, (struct sockaddr*)&client_addr, &client_addr_len);
+
+                char* client_ip = (char* ) malloc(INET6_ADDRSTRLEN);
+
+                if (IN6_IS_ADDR_V4MAPPED(&(client_addr.sin6_addr)))
+                {
+                    struct in_addr client_ipv4;
+                    memcpy(&(client_ipv4), client_addr.sin6_addr.s6_addr + 12, 4);
+                    inet_ntop(AF_INET, &(client_ipv4), client_ip, INET_ADDRSTRLEN);
+                }
+                else
+                {
+                    inet_ntop(AF_INET6, &(client_addr.sin6_addr), client_ip, INET6_ADDRSTRLEN);
+                }
+
+                result->client_ip = client_ip;
+
+                while (client_connection_status == KEEP_ALIVE)
+                {
+                    char buffer[MAX_MESSAGE_SIZE] = {0};
+            
+                    ssize_t read_bytes = recv(conn, buffer, sizeof(buffer) - 1, 0);
+            
+                    if (read_bytes > 0)
+                    {
+                        buffer[read_bytes] = '\0';
+                        // TODO: Remove after validation and parsing features complete
+                        printf("Client message: %s\n", buffer);
+            
+                        request_parser(buffer, result);
+                        client_connection_status = result->connection_status;
+                    } 
+                    
+                    else if (read_bytes == 0)
+                    {
+                        printf("Connection closed by client\n");
+                        break;
+                    }
+            
+                    else
+                    {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK)
+                        {
+                            printf("Timeout waiting for request\n");
+                        }
+                        else
+                        {
+                            perror("Failed to receive message\n");
+                        }
+                        break;
+                    }
+
+                    int cork = 1;
+
+                    setsockopt(conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
+
+                    if (result->response_headers)
+                    {
+                        send(conn, result->response_headers, result->response_headers_size, 0);
+                        free(result->response_headers);
+                        result->response_headers = NULL;
+                    }
+            
+                    if (result->data_content)
+                    {
+                        send(conn, result->data_content, result->response_size, 0);
+                        if(result->data_mime_type) 
+                        {
+                            free(result->data_mime_type);
+                            result->data_mime_type=NULL;
+                        }
+            
+                        if(result->data_content) 
+                        {
+                            free(result->data_content);
+                            result->data_content=NULL;
+                        }
+                    }
+
+                    cork = 0;
+                    setsockopt(conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
+
+                    if (result->URI) 
+                    {
+                        free(result->URI);
+                        result->URI = NULL;
+                    }
+
+                    if (result->headers) 
+                    {
+                        free(result->headers);
+                        result->headers = NULL;
+                    }
+
+                    if (result->request_body) 
+                    {
+                        free(result->request_body);
+                        result->request_body = NULL;
+                    }
+                    
+                    client_connection_status = result->connection_status;
+
+                    if (client_connection_status != KEEP_ALIVE)
+                    {
+                        printf("Closing connection...\n");
+                    }
+                }
+            
+                if (result->client_ip) 
+                {
+                    free(result->client_ip);
+                    result->client_ip = NULL;
+                }
+
+                if (result)
+                {
+                    free(result);
+                    result = NULL;
+                }
+
+                close(conn);
+                printf("Connection closed.\n");
             }
         }
     }
-
-    // while(1)
-    // {
-    //     enum ConnectionStatus client_connection_status = KEEP_ALIVE;
-        
-    //     if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
-    //     {
-    //         perror("Shutting server down.");
-    //         break;
-    //     }
-
-    //     struct sockaddr_in6 client_addr;
-    //     socklen_t client_addr_len = sizeof(client_addr);
-
-    //     HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
-    //     memset(result, 0, sizeof(HTTPParserResult));
-
-    //     result->config_data = conf_json_data;
-
-    //     int accepted_conn = accept(socket_fd, (struct sockaddr*)&client_addr, &client_addr_len);
-
-    //     if (accepted_conn < 0) 
-    //     {
-    //         if (errno == EINTR)
-    //         {
-    //             free(result);
-    //             result = NULL;
-    //             continue;
-    //         }
-    //         perror("Accept failed");
-    //         break;
-    //     }
-
-    //     if (setsockopt(accepted_conn, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
-    //     {
-    //         perror("setsockopt failed");
-    //     }
-
-    //     getpeername(accepted_conn, (struct sockaddr*)&client_addr, &client_addr_len);
-
-    //     char* client_ip = (char* ) malloc(INET6_ADDRSTRLEN);
-
-    //     if (IN6_IS_ADDR_V4MAPPED(&(client_addr.sin6_addr)))
-    //     {
-    //         struct in_addr client_ipv4;
-    //         memcpy(&(client_ipv4), client_addr.sin6_addr.s6_addr + 12, 4);
-    //         inet_ntop(AF_INET, &(client_ipv4), client_ip, INET_ADDRSTRLEN);
-    //     }
-    //     else
-    //     {
-    //         inet_ntop(AF_INET6, &(client_addr.sin6_addr), client_ip, INET6_ADDRSTRLEN);
-    //     }
-
-    //     result->client_ip = client_ip;
-
-    //     while (client_connection_status == KEEP_ALIVE)
-    //     {
-    //         char buffer[MAX_MESSAGE_SIZE] = {0};
-    
-    //         ssize_t read_bytes = recv(accepted_conn, buffer, sizeof(buffer) - 1, 0);
-    
-    //         if (read_bytes > 0)
-    //         {
-    //             buffer[read_bytes] = '\0';
-    //             // TODO: Remove after validation and parsing features complete
-    //             printf("Client message: %s\n", buffer);
-    
-    //             request_parser(buffer, result);
-    //             client_connection_status = result->connection_status;
-    //         } 
-            
-    //         else if (read_bytes == 0)
-    //         {
-    //             printf("Connection closed by client\n");
-    //             break;
-    //         }
-    
-    //         else
-    //         {
-    //             if (errno == EAGAIN || errno == EWOULDBLOCK)
-    //             {
-    //                 printf("Timeout waiting for request\n");
-    //             }
-    //             else
-    //             {
-    //                 perror("Failed to receive message\n");
-    //             }
-    //             break;
-    //         }
-
-    //         int cork = 1;
-
-    //         setsockopt(accepted_conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
-
-    //         if (result->response_headers)
-    //         {
-    //             send(accepted_conn, result->response_headers, result->response_headers_size, 0);
-    //             free(result->response_headers);
-    //             result->response_headers = NULL;
-    //         }
-    
-    //         if (result->data_content)
-    //         {
-    //             send(accepted_conn, result->data_content, result->response_size, 0);
-    //             if(result->data_mime_type) 
-    //             {
-    //                 free(result->data_mime_type);
-    //                 result->data_mime_type=NULL;
-    //             }
-    
-    //             if(result->data_content) 
-    //             {
-    //                 free(result->data_content);
-    //                 result->data_content=NULL;
-    //             }
-    //         }
-
-    //         cork = 0;
-    //         setsockopt(accepted_conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
-
-    //         if (result->URI) 
-    //         {
-    //             free(result->URI);
-    //             result->URI = NULL;
-    //         }
-
-    //         if (result->headers) 
-    //         {
-    //             free(result->headers);
-    //             result->headers = NULL;
-    //         }
-
-    //         if (result->request_body) 
-    //         {
-    //             free(result->request_body);
-    //             result->request_body = NULL;
-    //         }
-            
-    //         client_connection_status = result->connection_status;
-
-    //         if (client_connection_status != KEEP_ALIVE)
-    //         {
-    //             printf("Closing connection...\n");
-    //         }
-    //     }
-    
-    //     if (result->client_ip) 
-    //     {
-    //         free(result->client_ip);
-    //         result->client_ip = NULL;
-    //     }
-
-    //     if (result)
-    //     {
-    //         free(result);
-    //         result = NULL;
-    //     }
-
-    //     close(accepted_conn);
-    //     printf("Connection closed.\n");
-    // }
 
     cJSON_Delete(conf_json_data);
     close(socket_fd);
