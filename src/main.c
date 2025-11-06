@@ -190,8 +190,7 @@ int main()
         if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
         {
             perror("Shutting server down.");
-            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, socket_fd, NULL);
-            close(socket_fd);
+            break;
         }
         
         
@@ -211,6 +210,9 @@ int main()
                         if (errno == EINTR)
                         {
                             continue;
+                        } else if (errno == EAGAIN || errno == EWOULDBLOCK)
+                        {
+                            break;
                         }
                         perror("Accept failed");
                         break;
@@ -238,30 +240,31 @@ int main()
 
                 enum ConnectionStatus client_connection_status = KEEP_ALIVE;
 
-                HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
-                memset(result, 0, sizeof(HTTPParserResult));
-
-                result->config_data = conf_json_data;
-
-                getpeername(conn, (struct sockaddr*)&client_addr, &client_addr_len);
-
-                char* client_ip = (char* ) malloc(INET6_ADDRSTRLEN);
-
-                if (IN6_IS_ADDR_V4MAPPED(&(client_addr.sin6_addr)))
+                if(events[i].events == EPOLLIN)
                 {
-                    struct in_addr client_ipv4;
-                    memcpy(&(client_ipv4), client_addr.sin6_addr.s6_addr + 12, 4);
-                    inet_ntop(AF_INET, &(client_ipv4), client_ip, INET_ADDRSTRLEN);
-                }
-                else
-                {
-                    inet_ntop(AF_INET6, &(client_addr.sin6_addr), client_ip, INET6_ADDRSTRLEN);
-                }
-
-                result->client_ip = client_ip;
-
-                while (client_connection_status == KEEP_ALIVE)
-                {
+                    printf("In epoll in \n");
+                    HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
+                    memset(result, 0, sizeof(HTTPParserResult));
+    
+                    result->config_data = conf_json_data;
+    
+                    getpeername(conn, (struct sockaddr*)&client_addr, &client_addr_len);
+    
+                    char* client_ip = (char* ) malloc(INET6_ADDRSTRLEN);
+    
+                    if (IN6_IS_ADDR_V4MAPPED(&(client_addr.sin6_addr)))
+                    {
+                        struct in_addr client_ipv4;
+                        memcpy(&(client_ipv4), client_addr.sin6_addr.s6_addr + 12, 4);
+                        inet_ntop(AF_INET, &(client_ipv4), client_ip, INET_ADDRSTRLEN);
+                    }
+                    else
+                    {
+                        inet_ntop(AF_INET6, &(client_addr.sin6_addr), client_ip, INET6_ADDRSTRLEN);
+                    }
+    
+                    result->client_ip = client_ip;
+    
                     char buffer[MAX_MESSAGE_SIZE] = {0};
             
                     ssize_t read_bytes = recv(conn, buffer, sizeof(buffer) - 1, 0);
@@ -273,27 +276,40 @@ int main()
                         printf("Client message: %s\n", buffer);
             
                         request_parser(buffer, result);
-                        client_connection_status = result->connection_status;
+
+                        ev.events = EPOLLOUT | EPOLLET;
+                        ev.data.ptr = result;
+
+                        if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, conn, &ev) == -1)
+                        {
+                            perror("Failed to modify epoll for writing");
+
+                            free(result->client_ip);
+                            free(result);
+                            close(conn);
+                        }
                     } 
                     
                     else if (read_bytes == 0)
                     {
+                        close(conn);
                         printf("Connection closed by client\n");
-                        break;
                     }
             
                     else
                     {
                         if (errno == EAGAIN || errno == EWOULDBLOCK)
                         {
-                            printf("Timeout waiting for request\n");
                         }
                         else
                         {
                             perror("Failed to receive message\n");
                         }
-                        break;
                     }
+                    printf("End of epoll in\n");
+                } else if (events[i].events == EPOLLOUT)
+                {
+                    HTTPParserResult* result = (HTTPParserResult* ) events[i].data.ptr;
 
                     int cork = 1;
 
@@ -301,14 +317,26 @@ int main()
 
                     if (result->response_headers)
                     {
-                        send(conn, result->response_headers, result->response_headers_size, 0);
+                        ssize_t sent_bytes = send(conn, result->response_headers, result->response_headers_size, 0);
+
+                        if (sent_bytes < 0)
+                        {
+                            perror("Could not send headers.");
+                        }
+
                         free(result->response_headers);
                         result->response_headers = NULL;
                     }
             
                     if (result->data_content)
                     {
-                        send(conn, result->data_content, result->response_size, 0);
+                        ssize_t sent_content = send(conn, result->data_content, result->response_size, 0);
+
+                        if(sent_content < 0)
+                        {
+                            perror("Could not send content");
+                        }
+
                         if(result->data_mime_type) 
                         {
                             free(result->data_mime_type);
@@ -348,26 +376,32 @@ int main()
                     if (client_connection_status != KEEP_ALIVE)
                     {
                         printf("Closing connection...\n");
+                        close(conn);
+                        printf("Connection closed.\n");
                     }
-                }
-            
-                if (result->client_ip) 
-                {
-                    free(result->client_ip);
-                    result->client_ip = NULL;
-                }
 
-                if (result)
+                    if (result->client_ip) 
+                    {
+                        free(result->client_ip);
+                        result->client_ip = NULL;
+                    }
+    
+                    if (result)
+                    {
+                        free(result);
+                        result = NULL;
+                    }
+                } else if (events[i].events == EPOLLERR)
                 {
-                    free(result);
-                    result = NULL;
+                    perror("Socket error occured");
+                    close(conn);
                 }
-
-                close(conn);
-                printf("Connection closed.\n");
             }
         }
     }
+
+    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, socket_fd, NULL);
+    close(epoll_fd);
 
     cJSON_Delete(conf_json_data);
     close(socket_fd);
