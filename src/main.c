@@ -193,7 +193,6 @@ int main()
             break;
         }
         
-        
         for (int i = 0; i < no_fds; i++)
         {
             struct sockaddr_in6 client_addr;
@@ -242,11 +241,11 @@ int main()
 
                 if(events[i].events == EPOLLIN)
                 {
-                    printf("In epoll in \n");
                     HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
                     memset(result, 0, sizeof(HTTPParserResult));
     
                     result->config_data = conf_json_data;
+                    result->client_socket_fd = conn;
     
                     getpeername(conn, (struct sockaddr*)&client_addr, &client_addr_len);
     
@@ -268,7 +267,7 @@ int main()
                     char buffer[MAX_MESSAGE_SIZE] = {0};
             
                     ssize_t read_bytes = recv(conn, buffer, sizeof(buffer) - 1, 0);
-            
+
                     if (read_bytes > 0)
                     {
                         buffer[read_bytes] = '\0';
@@ -306,18 +305,19 @@ int main()
                             perror("Failed to receive message\n");
                         }
                     }
-                    printf("End of epoll in\n");
                 } else if (events[i].events == EPOLLOUT)
                 {
                     HTTPParserResult* result = (HTTPParserResult* ) events[i].data.ptr;
 
+                    int client_conn_fd = result->client_socket_fd;
+
                     int cork = 1;
 
-                    setsockopt(conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
+                    setsockopt(client_conn_fd, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
 
                     if (result->response_headers)
                     {
-                        ssize_t sent_bytes = send(conn, result->response_headers, result->response_headers_size, 0);
+                        ssize_t sent_bytes = send(client_conn_fd, result->response_headers, result->response_headers_size, 0);
 
                         if (sent_bytes < 0)
                         {
@@ -330,7 +330,7 @@ int main()
             
                     if (result->data_content)
                     {
-                        ssize_t sent_content = send(conn, result->data_content, result->response_size, 0);
+                        ssize_t sent_content = send(client_conn_fd, result->data_content, result->response_size, 0);
 
                         if(sent_content < 0)
                         {
@@ -351,7 +351,7 @@ int main()
                     }
 
                     cork = 0;
-                    setsockopt(conn, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
+                    setsockopt(client_conn_fd, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
 
                     if (result->URI) 
                     {
@@ -372,24 +372,17 @@ int main()
                     }
                     
                     client_connection_status = result->connection_status;
+                    
+                    free(result->client_ip);
+                    free(result);
+                    result = NULL;
 
                     if (client_connection_status != KEEP_ALIVE)
                     {
                         printf("Closing connection...\n");
-                        close(conn);
+                        close(client_conn_fd);
                         printf("Connection closed.\n");
-                    }
-
-                    if (result->client_ip) 
-                    {
-                        free(result->client_ip);
-                        result->client_ip = NULL;
-                    }
-    
-                    if (result)
-                    {
-                        free(result);
-                        result = NULL;
+                        break;
                     }
                 } else if (events[i].events == EPOLLERR)
                 {
