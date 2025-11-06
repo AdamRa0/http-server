@@ -148,7 +148,7 @@ int main()
         close(socket_fd);
         exit(EXIT_FAILURE);
     }
-
+    
     if (listen(socket_fd, 10) < 0)
     {
         perror("Server failed to listen.");
@@ -156,14 +156,21 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    int epoll_fd = epoll_create1(0);
+    if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
+    {
+        cJSON_Delete(conf_json_data);
+        close(socket_fd);        
+        exit(1);
+    }
 
+    int epoll_fd = epoll_create1(0);
+    
     if (epoll_fd == -1)
     {
         perror("Failed to create event loop");
         exit(EXIT_FAILURE);
     }
-
+    
     struct epoll_event ev, events[MAX_EVENTS];
     ev.events = EPOLLIN;
     ev.data.fd = socket_fd;
@@ -187,11 +194,6 @@ int main()
         }
         
         
-        if (received_signal == SIGTERM || received_signal == SIGINT || received_signal == SIGSEGV)
-        {
-            perror("Shutting server down.");
-            break;
-        }
         
         for (int i = 0; i < no_fds; i++)
         {
@@ -308,22 +310,22 @@ int main()
                 } else if (events[i].events == EPOLLOUT)
                 {
                     HTTPParserResult* result = (HTTPParserResult* ) events[i].data.ptr;
-
+                    
                     int client_conn_fd = result->client_socket_fd;
-
+                    
                     int cork = 1;
-
+                    
                     setsockopt(client_conn_fd, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
-
+                    
                     if (result->response_headers)
                     {
                         ssize_t sent_bytes = send(client_conn_fd, result->response_headers, result->response_headers_size, 0);
-
+                        
                         if (sent_bytes < 0)
                         {
                             perror("Could not send headers.");
                         }
-
+                        
                         free(result->response_headers);
                         result->response_headers = NULL;
                     }
@@ -331,28 +333,30 @@ int main()
                     if (result->data_content)
                     {
                         ssize_t sent_content = send(client_conn_fd, result->data_content, result->response_size, 0);
-
+                        
                         if(sent_content < 0)
                         {
                             perror("Could not send content");
                         }
-
+                        
                         if(result->data_mime_type) 
                         {
                             free(result->data_mime_type);
                             result->data_mime_type=NULL;
                         }
-            
+                        
                         if(result->data_content) 
                         {
                             free(result->data_content);
                             result->data_content=NULL;
                         }
                     }
-
+                    
                     cork = 0;
                     setsockopt(client_conn_fd, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
 
+                    client_connection_status = result->connection_status;
+                    
                     if (result->URI) 
                     {
                         free(result->URI);
@@ -371,11 +375,17 @@ int main()
                         result->request_body = NULL;
                     }
                     
-                    client_connection_status = result->connection_status;
-                    
-                    free(result->client_ip);
-                    free(result);
-                    result = NULL;
+                    if (result->client_ip)
+                    {
+                        free(result->client_ip);
+                        result->client_ip = NULL;
+                    }
+
+                    if (conn == client_conn_fd && result)
+                    {
+                        free(result);
+                        result = NULL;
+                    }
 
                     if (client_connection_status != KEEP_ALIVE)
                     {
