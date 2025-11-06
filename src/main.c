@@ -72,10 +72,7 @@ int main()
     if (received_signal == SIGINT || received_signal == SIGSEGV || received_signal == SIGTERM)
     {
         close_server(epoll_fd, server_socket, conf_json_data);
-        exit(0);
     }
-
-    close_server(epoll_fd, server_socket, conf_json_data);
 
     return 0;
 }
