@@ -1,14 +1,12 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
 
-typedef struct BucketNode BucketNode;
-
-struct BucketNode
+typedef struct BucketNode
 {
     char* key;
     char* value;
     BucketNode* p_next;
-};
+} BucketNode;
 
 typedef struct LinkedList
 {
