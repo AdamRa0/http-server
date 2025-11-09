@@ -8,13 +8,13 @@ typedef struct Queue
     LinkedList queue;
 } Queue;
 
-typedef struct Ctx_queue
+typedef struct Ctx_Queue
 {
     Queue* queue;
     bool initialized;
-} Ctx_queue;
+} Ctx_Queue;
 
-Queue* init_queue(Ctx_queue context;);
+Queue* init_queue(Ctx_Queue context;);
 
 BucketNode* peak(Queue* queue);
 

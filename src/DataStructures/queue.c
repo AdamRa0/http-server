@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-Queue* init_queue(Ctx_queue context)
+Queue* init_queue(Ctx_Queue context)
 {
     if (context.initialized)
     {
@@ -11,6 +11,7 @@ Queue* init_queue(Ctx_queue context)
     }
 
     context.queue = (Queue* ) malloc(sizeof(Queue));
+    context.initialized = true;
 
     return context.queue;
 }
@@ -42,7 +43,7 @@ BucketNode* deque(Queue* queue)
     return prev_head;
 }
 
-void append(BucketNode* data, Ctx_queue context)
+void append(BucketNode* data, Ctx_Queue context)
 {
     insert(data, context.queue);
 }
