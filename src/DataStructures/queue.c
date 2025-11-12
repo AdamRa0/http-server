@@ -26,16 +26,16 @@ void destroy_queue(Queue* queue)
 
 BucketNode* peak(Queue* queue)
 {
-    return queue->head;
+    return queue->queue.head;
 }
 
 BucketNode* deque(Queue* queue)
 {
-    BucketNode* prev_head = queue->head;
+    BucketNode* prev_head = queue->queue.head;
 
-    if (queue->head->p_next != NULL)
+    if (queue->queue.head->p_next != NULL)
     {
-        queue->head = queue->head->p_next;
+        queue->queue.head = queue->queue.head->p_next;
     }
 
     prev_head->p_next = NULL;
@@ -45,5 +45,5 @@ BucketNode* deque(Queue* queue)
 
 void append(BucketNode* data, Ctx_Queue context)
 {
-    insert(data, context.queue);
+    insert(data, &context.queue->queue);
 }

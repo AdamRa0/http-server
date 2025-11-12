@@ -11,7 +11,7 @@ char* get_header_value(const char* key, HashTable* h_dict)
 {
     BucketNode* h_node = find_in_bucket(key, h_dict);
 
-    return h_node != NULL ? h_node->value : NULL;
+    return h_node != NULL ? (char* ) h_node->value : NULL;
 }
 
 /**

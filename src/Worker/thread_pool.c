@@ -4,9 +4,9 @@
 #include <pthread.h>
 #include <stdlib.h>
  
-void* worker(ThreadPool* pool);
+void* worker(void* arg);
 
-ThreadPool* init_thread_pool(int num_threads, ThreadJob job)
+ThreadPool* init_thread_pool(int num_threads)
 {
     Ctx_Queue queue_context = { NULL, false };
 
@@ -14,8 +14,8 @@ ThreadPool* init_thread_pool(int num_threads, ThreadJob job)
 
     thread_pool->pool = (pthread_t* ) malloc(num_threads * sizeof(pthread_t));
     thread_pool->active = true;
-    thread_pool->lock = PTHREAD_MUTEX_INITIALIZER;
-    thread_pool->signal = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_init(&thread_pool->lock, NULL);
+    pthread_cond_init(&thread_pool->signal, NULL);
 
     thread_pool->work_queue = init_queue(queue_context);
 
@@ -27,8 +27,9 @@ ThreadPool* init_thread_pool(int num_threads, ThreadJob job)
     return thread_pool;
 }
 
-void worker(ThreadPool* pool)
+void* worker(void* arg)
 {
+    ThreadPool* pool = (ThreadPool* ) arg;
     while(pool->active)
     {
         pthread_mutex_lock(&pool->lock);
@@ -60,7 +61,7 @@ void destroy_thread_pool(ThreadPool* thread_pool)
 
     for(int i = 0; i < thread_pool->num_threads; i++)
     {
-        pthread_join(&thread_pool->pool[i], NULL);
+        pthread_join(thread_pool->pool[i], NULL);
     }
 
     free(thread_pool->pool);

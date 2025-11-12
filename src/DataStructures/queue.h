@@ -14,13 +14,13 @@ typedef struct Ctx_Queue
     bool initialized;
 } Ctx_Queue;
 
-Queue* init_queue(Ctx_Queue context;);
+Queue* init_queue(Ctx_Queue context);
 
 BucketNode* peak(Queue* queue);
 
 BucketNode* deque(Queue* queue);
 
-void append(BucketNode* data);
+void append(BucketNode* data, Ctx_Queue context);
 
 void destroy_queue(Queue* queue);
 

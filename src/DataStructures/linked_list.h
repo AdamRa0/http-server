@@ -4,11 +4,11 @@
 typedef struct BucketNode
 {
     char* key;
-    char* value;
-    BucketNode* p_next;
+    void* value;
+    struct BucketNode* p_next;
 } BucketNode;
 
-typedef struct LinkedList
+typedef struct
 {
     BucketNode* head; 
 } LinkedList;
