@@ -9,12 +9,8 @@
  
 void* worker(void* arg);
 
-Ctx_Queue queue_context;
-
 ThreadPool* init_thread_pool(int num_threads)
 {
-    queue_context.queue = NULL;
-    queue_context.initialized = false;
 
     ThreadPool* thread_pool = (ThreadPool* ) malloc(sizeof(ThreadPool));
 
@@ -24,7 +20,7 @@ ThreadPool* init_thread_pool(int num_threads)
     pthread_mutex_init(&thread_pool->lock, NULL);
     pthread_cond_init(&thread_pool->signal, NULL);
 
-    thread_pool->work_queue = init_queue(queue_context);
+    thread_pool->work_queue = init_queue();
 
     for (int i = 0; i < num_threads; i++)
     {
@@ -36,18 +32,18 @@ ThreadPool* init_thread_pool(int num_threads)
 
 void* worker(void* arg)
 {
-    ThreadPool* pool = (ThreadPool* ) arg;
-    printf("Worker thread started\n");
+    ThreadPool* pool = (ThreadPool*)arg;
+    
     while(pool->active)
     {
+        
         pthread_mutex_lock(&pool->lock);
-        printf("Worker: waiting for job...\n"); 
+        void* peek_result = peek(pool->work_queue);
+        
         while (peek(pool->work_queue) == NULL && pool->active)
         {
             pthread_cond_wait(&pool->signal, &pool->lock);
         }
-
-        printf("Worker: woke up\n");
         
         if (!pool->active)
         {
@@ -55,39 +51,41 @@ void* worker(void* arg)
             break;
         }
 
-        ThreadJob* job = (ThreadJob* ) deque(pool->work_queue);
+        ThreadJob* job = (ThreadJob*)deque(pool->work_queue);
+
         pthread_mutex_unlock(&pool->lock);
-
-
-        printf("Worker: got job %p\n", (void*)job);
         
         if(job)
         {
-            printf("Worker: executing job\n");
+            printf("Worker %lu: executing job\n", pthread_self());
+            fflush(stdout);
+            
             job->worker(job->buffer, job->result);
-            printf("Worker: job completed\n");
+            
+            printf("Worker %lu: job completed\n", pthread_self());
+            fflush(stdout);
+            
             free(job->buffer);
             free(job);
         }
     }
-
-    printf("Worker thread exiting\n");
+    
+    printf("Worker thread %lu exiting\n", pthread_self());
+    fflush(stdout);
     return NULL;
 }
 
 void add_job_to_work_queue(ThreadPool* pool, ThreadJob* job)
 {
-    printf("Adding job to queue\n");
     pthread_mutex_lock(&pool->lock);
-    printf("Mutex lock acquired by thread\n");
+
     BucketNode* node = (BucketNode* ) malloc (sizeof(BucketNode));
     node->key = NULL;
     node->value = job;
     append(node, pool->work_queue);
-    printf("Job added, signaling workers\n");
+    
     pthread_cond_signal(&pool->signal);
     pthread_mutex_unlock(&pool->lock);
-    printf("Mutex lock released by thread\n");
 }
 
 void destroy_thread_pool(ThreadPool* thread_pool)

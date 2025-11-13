@@ -156,7 +156,10 @@ int setup_server_socket(int port)
     return socket_fd;
 }
 
-void add_client_socket_to_event_loop(int e_fd, int sock_fd, struct epoll_event ev, struct sockaddr_in6 client_addr, socklen_t client_addr_len, struct timeval timeout)
+void add_client_socket_to_event_loop(int e_fd, int sock_fd, struct epoll_event ev, 
+                                        struct sockaddr_in6 client_addr, 
+                                        socklen_t client_addr_len, 
+                                        struct timeval timeout)
 {
     while(1)
     {
@@ -194,11 +197,10 @@ void add_client_socket_to_event_loop(int e_fd, int sock_fd, struct epoll_event e
 }
 
 void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data, 
-                                  struct sockaddr_in6 client_addr, 
-                                  socklen_t client_addr_len, 
-                                  struct epoll_event ev)
+                                    struct sockaddr_in6 client_addr, 
+                                    socklen_t client_addr_len, 
+                                    struct epoll_event ev)
 {
-    printf("on_socket_available_to_read: started for socket %d\n", s_fd);
     HTTPParserResult* result = (HTTPParserResult*)malloc(sizeof(HTTPParserResult));
     memset(result, 0, sizeof(HTTPParserResult));
 
@@ -292,8 +294,6 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
         }
     }
 
-    printf("Read %zu bytes total\n", total_read);
-
     if (total_read == 0)
     {
         free(buffer);
@@ -304,15 +304,12 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
 
     buffer[total_read] = '\0';
 
-    printf("Creating job for thread pool\n");
     ThreadJob* job = (ThreadJob*)malloc(sizeof(ThreadJob));
     job->worker = request_parser;
     job->buffer = buffer;
     job->result = result;
 
-    printf("About to add job to queue\n");
     add_job_to_work_queue(worker_pool, job);
-    printf("Job added to queue\n");
 
     ev.events = EPOLLOUT | EPOLLET;
     ev.data.ptr = result;
@@ -324,8 +321,6 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
         free(result);
         close(s_fd);
     }
-
-    printf("on_socket_available_to_read: finished\n");
 }
 
 void on_socket_available_to_write(void* ptr, int s_fd)
@@ -415,7 +410,11 @@ void on_socket_available_to_write(void* ptr, int s_fd)
     }
 }
 
-void run_event_loop(int e_fd, int s_fd, struct epoll_event ev, struct epoll_event* events, int num_of_events, struct timeval timeout, cJSON* config_data)
+void run_event_loop(int e_fd, int s_fd, struct epoll_event ev, 
+                        struct epoll_event* events, 
+                        int num_of_events, 
+                        struct timeval timeout, 
+                        cJSON* config_data)
 {
     int num_of_threads = set_num_of_threads(config_data);
 

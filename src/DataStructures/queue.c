@@ -3,18 +3,14 @@
 
 #include <stdlib.h>
 
-Queue* init_queue(Ctx_Queue context)
+Queue* init_queue()
 {
-    if (context.initialized)
-    {
-        return context.queue;
-    }
 
-    context.queue = (Queue* ) malloc(sizeof(Queue));
-    context.queue = NULL;
-    context.initialized = true;
+    Queue* queue = (Queue* ) malloc(sizeof(Queue));
 
-    return context.queue;
+    queue->queue.head = NULL;
+
+    return queue;
 }
 
 void destroy_queue(Queue* queue)
@@ -27,11 +23,20 @@ void destroy_queue(Queue* queue)
 
 BucketNode* peek(Queue* queue)
 {
+    if (!queue)
+    {
+        return NULL;
+    }
     return queue->queue.head;
 }
 
 BucketNode* deque(Queue* queue)
 {
+    if (queue == NULL || queue->queue.head == NULL)
+    {
+        return NULL;
+    }
+
     BucketNode* prev_head = queue->queue.head;
 
     if (queue->queue.head->p_next != NULL)
@@ -39,7 +44,7 @@ BucketNode* deque(Queue* queue)
         queue->queue.head = queue->queue.head->p_next;
     } else 
     {
-        return NULL;
+        queue->queue.head = NULL;
     }
 
     prev_head->p_next = NULL;
@@ -48,6 +53,11 @@ BucketNode* deque(Queue* queue)
 }
 
 void append(BucketNode* data, Queue* queue)
-{
+{    
+    if (queue == NULL)
+    {
+        return;
+    }
+    
     insert(data, &queue->queue);
 }
