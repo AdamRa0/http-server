@@ -2,6 +2,7 @@
 #define THREAD_POOL_H
 
 #include "../DataStructures/queue.h"
+#include "../Parsers/http_req_parser.h"
 
 #include <pthread.h>
 
@@ -17,8 +18,9 @@ typedef struct ThreadPool
 
 typedef struct ThreadJob
 {
-    void * (* worker)(void* arg);
-    void * arg;
+    void (* worker)(char buffer[], HTTPParserResult* result);
+    char* buffer;
+    HTTPParserResult* result;
 } ThreadJob;
 
 ThreadPool* init_thread_pool(int num_threads);

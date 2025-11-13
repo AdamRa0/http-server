@@ -24,7 +24,7 @@ void destroy_queue(Queue* queue)
     }
 }
 
-BucketNode* peak(Queue* queue)
+BucketNode* peek(Queue* queue)
 {
     return queue->queue.head;
 }
@@ -36,6 +36,9 @@ BucketNode* deque(Queue* queue)
     if (queue->queue.head->p_next != NULL)
     {
         queue->queue.head = queue->queue.head->p_next;
+    } else 
+    {
+        return NULL;
     }
 
     prev_head->p_next = NULL;

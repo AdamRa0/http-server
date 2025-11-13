@@ -1,10 +1,14 @@
+#include "../DataStructures/linked_list.h"
 #include "../DataStructures/queue.h"
+#include "../Parsers/http_req_parser.h"
 #include "thread_pool.h"
 
 #include <pthread.h>
 #include <stdlib.h>
  
 void* worker(void* arg);
+
+Ctx_Queue queue_context;
 
 ThreadPool* init_thread_pool(int num_threads)
 {
@@ -34,9 +38,18 @@ void* worker(void* arg)
     {
         pthread_mutex_lock(&pool->lock);
         pthread_cond_wait(&pool->signal, &pool->lock);
-        //TODO: fetch job from pool's work queue
+
+        ThreadJob* job_present = (ThreadJob* ) peek(queue_context.queue);
+        if (!job_present)
+        {
+            pthread_mutex_unlock(&pool->lock);
+            return NULL;
+        }
+
+        ThreadJob* job = (ThreadJob* ) deque(queue_context.queue);
         pthread_mutex_unlock(&pool->lock);
-        // TODO: Execute job from pool's work queue
+
+        job->worker(job->buffer, job->result);
     }
 
     return NULL;
@@ -45,7 +58,10 @@ void* worker(void* arg)
 void add_job_to_work_queue(ThreadPool* pool, ThreadJob* job)
 {
     pthread_mutex_lock(&pool->lock);
-    // TODO: Add job to work queue after refactoring queue to accept generic data
+    BucketNode* node = (BucketNode* ) malloc (sizeof(BucketNode));
+    node->key = NULL;
+    node->value = job;
+    append(node, queue_context);
     pthread_cond_signal(&pool->signal);
     pthread_mutex_unlock(&pool->lock);
 }
