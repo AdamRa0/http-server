@@ -1,12 +1,15 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#define MAX_MESSAGE_SIZE 40960
+#define INITIAL_MESSAGE_SIZE 4096
+#define MAX_MESSAGE_SIZE (10 * 1024 * 1024)
 
 #include "../cJSON/cJSON.h"
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+
+int set_num_of_threads(cJSON* config_data);
 
 int set_port_number(cJSON* config_data);
 

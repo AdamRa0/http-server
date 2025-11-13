@@ -23,6 +23,14 @@ void forbidden_request_handler(HTTPParserResult* result)
     set_server_response(result, path, NULL);
 }
 
+void payload_too_large_handler(HTTPParserResult* result)
+{
+    const char* filename = "413.html";
+    char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
+
+    set_server_response(result, path, NULL);
+}
+
 void server_error_handler(HTTPParserResult* result)
 {
     const char* filename = "500.html";

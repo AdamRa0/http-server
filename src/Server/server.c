@@ -14,7 +14,30 @@
 #include "server.h"
 
 #include "../cJSON/cJSON.h"
+#include "../Handlers/error_handler.h"
 #include "../Parsers/http_req_parser.h"
+#include "../Worker/thread_pool.h"
+
+ThreadPool* worker_pool = NULL;
+
+int set_num_of_threads(cJSON* config_data)
+{
+    if (config_data != NULL)
+    {
+        cJSON* num_of_threads = cJSON_GetObjectItemCaseSensitive(config_data, "num_of_threads");
+        
+        if (!cJSON_IsNumber(num_of_threads) || cJSON_IsNull(num_of_threads))
+        {
+            cJSON_Delete(config_data);
+            perror("Could not set number of threads value");
+            return 0;
+        }
+
+        return (int) num_of_threads->valuedouble;
+    }
+
+    return 0;
+}
 
 int set_port_number(cJSON* config_data)
 {
@@ -28,10 +51,11 @@ int set_port_number(cJSON* config_data)
         {
             cJSON* server_port = cJSON_GetObjectItemCaseSensitive(server, "port");
             
-            if (!cJSON_IsNumber(server_port))
+            if (!cJSON_IsNumber(server_port) || cJSON_IsNull(server_port))
             {
                 cJSON_Delete(config_data);
                 perror("Could not set server port value");
+                return 0;
             }
             
             return (int) server_port->valuedouble;
@@ -169,9 +193,12 @@ void add_client_socket_to_event_loop(int e_fd, int sock_fd, struct epoll_event e
     }       
 }
 
-void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data, struct sockaddr_in6 client_addr, socklen_t client_addr_len, struct epoll_event ev)
+void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data, 
+                                  struct sockaddr_in6 client_addr, 
+                                  socklen_t client_addr_len, 
+                                  struct epoll_event ev)
 {
-    HTTPParserResult* result = (HTTPParserResult* ) malloc(sizeof(HTTPParserResult));
+    HTTPParserResult* result = (HTTPParserResult*)malloc(sizeof(HTTPParserResult));
     memset(result, 0, sizeof(HTTPParserResult));
 
     result->config_data = config_data;
@@ -180,7 +207,7 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data, struct 
 
     getpeername(s_fd, (struct sockaddr*)&client_addr, &client_addr_len);
 
-    char* client_ip = (char* ) malloc(INET6_ADDRSTRLEN);
+    char* client_ip = (char*)malloc(INET6_ADDRSTRLEN);
 
     if (IN6_IS_ADDR_V4MAPPED(&(client_addr.sin6_addr)))
     {
@@ -195,43 +222,101 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data, struct 
 
     result->client_ip = client_ip;
 
-    char buffer[MAX_MESSAGE_SIZE] = {0};
+    char* buffer = (char*)malloc(INITIAL_MESSAGE_SIZE);
+    memset(buffer, 0, INITIAL_MESSAGE_SIZE);
 
-    ssize_t read_bytes = recv(s_fd, buffer, sizeof(buffer) - 1, 0);
+    size_t buffer_size = INITIAL_MESSAGE_SIZE;
+    size_t total_read = 0;
 
-    if (read_bytes > 0)
+    while (total_read < MAX_MESSAGE_SIZE)
     {
-        buffer[read_bytes] = '\0';
-        request_parser(buffer, result);
+        ssize_t read_bytes = recv(s_fd, buffer + total_read, 
+                                   buffer_size - total_read - 1, MSG_DONTWAIT);
 
-        ev.events = EPOLLOUT | EPOLLET;
-        ev.data.ptr = result;
-
-        if (epoll_ctl(e_fd, EPOLL_CTL_MOD, s_fd, &ev) == -1)
+        if (read_bytes < 0)
         {
-            perror("Failed to modify epoll for writing");
-
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                break;
+            }
+            else
+            {
+                perror("Failed to receive message");
+                free(buffer);
+                free(result->client_ip);
+                free(result);
+                close(s_fd);
+                return;
+            }
+        }
+        else if (read_bytes == 0)
+        {
+            close(s_fd);
+            printf("Connection closed by client\n");
+            free(buffer);
             free(result->client_ip);
             free(result);
-            close(s_fd);
+            return;
         }
-    } 
-    
-    else if (read_bytes == 0)
-    {
-        close(s_fd);
-        printf("Connection closed by client\n");
+
+        total_read += read_bytes;
+
+        if (strstr(buffer, "\r\n\r\n"))
+        {
+            break;
+        }
+
+        if (total_read >= buffer_size - 1)
+        {
+            buffer_size *= 2;
+            if (buffer_size > MAX_MESSAGE_SIZE)
+            {
+                payload_too_large_handler(result);
+                perror("Payload received too large");
+                free(buffer);
+                free(result->client_ip);
+                free(result);
+                close(s_fd);
+                return;
+            }
+            buffer = realloc(buffer, buffer_size);
+            if (!buffer)
+            {
+                perror("Failed to reallocate buffer");
+                free(result->client_ip);
+                free(result);
+                close(s_fd);
+                return;
+            }
+        }
     }
 
-    else
+    if (total_read == 0)
     {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-        {
-        }
-        else
-        {
-            perror("Failed to receive message\n");
-        }
+        free(buffer);
+        free(result->client_ip);
+        free(result);
+        return;
+    }
+
+    buffer[total_read] = '\0';
+
+    ThreadJob* job = (ThreadJob*)malloc(sizeof(ThreadJob));
+    job->worker = request_parser;
+    job->buffer = buffer;
+    job->result = result;
+
+    add_job_to_work_queue(worker_pool, job);
+
+    ev.events = EPOLLOUT | EPOLLET;
+    ev.data.ptr = result;
+
+    if (epoll_ctl(e_fd, EPOLL_CTL_MOD, s_fd, &ev) == -1)
+    {
+        perror("Failed to modify epoll for writing");
+        free(result->client_ip);
+        free(result);
+        close(s_fd);
     }
 }
 
@@ -324,6 +409,10 @@ void on_socket_available_to_write(void* ptr, int s_fd)
 
 void run_event_loop(int e_fd, int s_fd, struct epoll_event ev, struct epoll_event* events, int num_of_events, struct timeval timeout, cJSON* config_data)
 {
+    int num_of_threads = set_num_of_threads(config_data);
+
+    worker_pool = init_thread_pool(num_of_threads);
+    
     for(;;)
     {
         int no_fds = epoll_wait(e_fd, events, num_of_events, -1);
@@ -346,13 +435,13 @@ void run_event_loop(int e_fd, int s_fd, struct epoll_event ev, struct epoll_even
             {
                 int conn = events[i].data.fd;
 
-                if(events[i].events == EPOLLIN)
+                if(events[i].events & EPOLLIN)
                 {
                     on_socket_available_to_read(e_fd, conn, config_data, client_addr, client_addr_len, ev);
-                } else if (events[i].events == EPOLLOUT)
+                } else if (events[i].events & EPOLLOUT)
                 {
                     on_socket_available_to_write(events[i].data.ptr, conn);
-                } else if (events[i].events == EPOLLERR)
+                } else if (events[i].events & EPOLLERR)
                 {
                     perror("Socket error occured");
                     close(conn);
@@ -364,6 +453,7 @@ void run_event_loop(int e_fd, int s_fd, struct epoll_event ev, struct epoll_even
 
 void close_server(int e_fd, int server_sock_fd, cJSON* config_data)
 {
+    destroy_thread_pool(worker_pool);
     epoll_ctl(e_fd, EPOLL_CTL_DEL, server_sock_fd, NULL);
     close(e_fd);
 

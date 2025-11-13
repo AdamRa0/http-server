@@ -12,10 +12,12 @@ Ctx_Queue queue_context;
 
 ThreadPool* init_thread_pool(int num_threads)
 {
-    Ctx_Queue queue_context = { NULL, false };
+    queue_context.queue = NULL;
+    queue_context.initialized = false;
 
     ThreadPool* thread_pool = (ThreadPool* ) malloc(sizeof(ThreadPool));
 
+    thread_pool->num_threads = num_threads;
     thread_pool->pool = (pthread_t* ) malloc(num_threads * sizeof(pthread_t));
     thread_pool->active = true;
     pthread_mutex_init(&thread_pool->lock, NULL);
@@ -25,7 +27,7 @@ ThreadPool* init_thread_pool(int num_threads)
 
     for (int i = 0; i < num_threads; i++)
     {
-        pthread_create(&thread_pool->pool[i], NULL, worker, NULL);
+        pthread_create(&thread_pool->pool[i], NULL, worker, thread_pool);
     }
 
     return thread_pool;
@@ -37,19 +39,26 @@ void* worker(void* arg)
     while(pool->active)
     {
         pthread_mutex_lock(&pool->lock);
-        pthread_cond_wait(&pool->signal, &pool->lock);
-
-        ThreadJob* job_present = (ThreadJob* ) peek(queue_context.queue);
-        if (!job_present)
+        while (peek(queue_context.queue) == NULL && pool->active)
+        {
+            pthread_cond_wait(&pool->signal, &pool->lock);
+        }
+        
+        if (!pool->active)
         {
             pthread_mutex_unlock(&pool->lock);
-            return NULL;
+            break;
         }
 
         ThreadJob* job = (ThreadJob* ) deque(queue_context.queue);
         pthread_mutex_unlock(&pool->lock);
-
-        job->worker(job->buffer, job->result);
+        
+        if(job)
+        {
+            job->worker(job->buffer, job->result);
+            free(job->buffer);
+            free(job);
+        }
     }
 
     return NULL;

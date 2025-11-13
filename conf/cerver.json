@@ -1,4 +1,5 @@
 {
+    "num_of_threads": 4,
     "servers": [
         {
             "port": 80,
