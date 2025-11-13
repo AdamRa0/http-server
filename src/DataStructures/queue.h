@@ -20,7 +20,7 @@ BucketNode* peek(Queue* queue);
 
 BucketNode* deque(Queue* queue);
 
-void append(BucketNode* data, Ctx_Queue context);
+void append(BucketNode* data, Queue* queue);
 
 void destroy_queue(Queue* queue);
 

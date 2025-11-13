@@ -198,6 +198,7 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
                                   socklen_t client_addr_len, 
                                   struct epoll_event ev)
 {
+    printf("on_socket_available_to_read: started for socket %d\n", s_fd);
     HTTPParserResult* result = (HTTPParserResult*)malloc(sizeof(HTTPParserResult));
     memset(result, 0, sizeof(HTTPParserResult));
 
@@ -291,6 +292,8 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
         }
     }
 
+    printf("Read %zu bytes total\n", total_read);
+
     if (total_read == 0)
     {
         free(buffer);
@@ -301,12 +304,15 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
 
     buffer[total_read] = '\0';
 
+    printf("Creating job for thread pool\n");
     ThreadJob* job = (ThreadJob*)malloc(sizeof(ThreadJob));
     job->worker = request_parser;
     job->buffer = buffer;
     job->result = result;
 
+    printf("About to add job to queue\n");
     add_job_to_work_queue(worker_pool, job);
+    printf("Job added to queue\n");
 
     ev.events = EPOLLOUT | EPOLLET;
     ev.data.ptr = result;
@@ -318,6 +324,8 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
         free(result);
         close(s_fd);
     }
+
+    printf("on_socket_available_to_read: finished\n");
 }
 
 void on_socket_available_to_write(void* ptr, int s_fd)

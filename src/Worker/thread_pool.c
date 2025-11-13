@@ -4,6 +4,7 @@
 #include "thread_pool.h"
 
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
  
 void* worker(void* arg);
@@ -36,13 +37,17 @@ ThreadPool* init_thread_pool(int num_threads)
 void* worker(void* arg)
 {
     ThreadPool* pool = (ThreadPool* ) arg;
+    printf("Worker thread started\n");
     while(pool->active)
     {
         pthread_mutex_lock(&pool->lock);
-        while (peek(queue_context.queue) == NULL && pool->active)
+        printf("Worker: waiting for job...\n"); 
+        while (peek(pool->work_queue) == NULL && pool->active)
         {
             pthread_cond_wait(&pool->signal, &pool->lock);
         }
+
+        printf("Worker: woke up\n");
         
         if (!pool->active)
         {
@@ -50,29 +55,39 @@ void* worker(void* arg)
             break;
         }
 
-        ThreadJob* job = (ThreadJob* ) deque(queue_context.queue);
+        ThreadJob* job = (ThreadJob* ) deque(pool->work_queue);
         pthread_mutex_unlock(&pool->lock);
+
+
+        printf("Worker: got job %p\n", (void*)job);
         
         if(job)
         {
+            printf("Worker: executing job\n");
             job->worker(job->buffer, job->result);
+            printf("Worker: job completed\n");
             free(job->buffer);
             free(job);
         }
     }
 
+    printf("Worker thread exiting\n");
     return NULL;
 }
 
 void add_job_to_work_queue(ThreadPool* pool, ThreadJob* job)
 {
+    printf("Adding job to queue\n");
     pthread_mutex_lock(&pool->lock);
+    printf("Mutex lock acquired by thread\n");
     BucketNode* node = (BucketNode* ) malloc (sizeof(BucketNode));
     node->key = NULL;
     node->value = job;
-    append(node, queue_context);
+    append(node, pool->work_queue);
+    printf("Job added, signaling workers\n");
     pthread_cond_signal(&pool->signal);
     pthread_mutex_unlock(&pool->lock);
+    printf("Mutex lock released by thread\n");
 }
 
 void destroy_thread_pool(ThreadPool* thread_pool)

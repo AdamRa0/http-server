@@ -11,6 +11,7 @@ Queue* init_queue(Ctx_Queue context)
     }
 
     context.queue = (Queue* ) malloc(sizeof(Queue));
+    context.queue = NULL;
     context.initialized = true;
 
     return context.queue;
@@ -46,7 +47,7 @@ BucketNode* deque(Queue* queue)
     return prev_head;
 }
 
-void append(BucketNode* data, Ctx_Queue context)
+void append(BucketNode* data, Queue* queue)
 {
-    insert(data, &context.queue->queue);
+    insert(data, &queue->queue);
 }
