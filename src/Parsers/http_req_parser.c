@@ -149,7 +149,6 @@ void request_parser(char* data, HTTPParserResult* result)
         return;
     }
 
-    // Http version not 1.1
     if (result->http_version != 1.1f)
     {
         server_error_handler(result);
@@ -240,11 +239,7 @@ void request_parser(char* data, HTTPParserResult* result)
     {
         result->request_body = strdup(body_start);
     }
-
-    printf("Request body: %s\n", result->request_body);
-
-    // Handle request within 30 seconds
-
+    
     handle_request(result, &headers_map);
 
     clear_hash_table(&headers_map);

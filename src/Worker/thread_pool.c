@@ -4,7 +4,6 @@
 #include "thread_pool.h"
 
 #include <pthread.h>
-#include <stdio.h>
 #include <stdlib.h>
  
 void* worker(void* arg);
@@ -51,27 +50,20 @@ void* worker(void* arg)
             break;
         }
 
-        ThreadJob* job = (ThreadJob*)deque(pool->work_queue);
+        BucketNode* job_node = (BucketNode*)deque(pool->work_queue);
 
         pthread_mutex_unlock(&pool->lock);
         
-        if(job)
-        {
-            printf("Worker %lu: executing job\n", pthread_self());
-            fflush(stdout);
+        if(job_node)
+        {            
+            ThreadJob* job = (ThreadJob* ) job_node->value;
             
             job->worker(job->buffer, job->result);
-            
-            printf("Worker %lu: job completed\n", pthread_self());
-            fflush(stdout);
             
             free(job->buffer);
             free(job);
         }
     }
-    
-    printf("Worker thread %lu exiting\n", pthread_self());
-    fflush(stdout);
     return NULL;
 }
 
