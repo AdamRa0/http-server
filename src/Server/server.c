@@ -308,19 +308,10 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
     job->worker = request_parser;
     job->buffer = buffer;
     job->result = result;
+    job->epoll_fd = e_fd;
+    job->socket_fd = s_fd;
 
     add_job_to_work_queue(worker_pool, job);
-
-    ev.events = EPOLLOUT | EPOLLET;
-    ev.data.ptr = result;
-
-    if (epoll_ctl(e_fd, EPOLL_CTL_MOD, s_fd, &ev) == -1)
-    {
-        perror("Failed to modify epoll for writing");
-        free(result->client_ip);
-        free(result);
-        close(s_fd);
-    }
 }
 
 void on_socket_available_to_write(void* ptr, int s_fd)

@@ -3,8 +3,11 @@
 #include "../Parsers/http_req_parser.h"
 #include "thread_pool.h"
 
+#include <sys/epoll.h>
 #include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
  
 void* worker(void* arg);
 
@@ -32,12 +35,12 @@ ThreadPool* init_thread_pool(int num_threads)
 void* worker(void* arg)
 {
     ThreadPool* pool = (ThreadPool*)arg;
-    
+    struct epoll_event ev;
+
     while(pool->active)
     {
         
         pthread_mutex_lock(&pool->lock);
-        void* peek_result = peek(pool->work_queue);
         
         while (peek(pool->work_queue) == NULL && pool->active)
         {
@@ -59,6 +62,15 @@ void* worker(void* arg)
             ThreadJob* job = (ThreadJob* ) job_node->value;
             
             job->worker(job->buffer, job->result);
+
+            ev.events = EPOLLOUT | EPOLLET;
+            ev.data.ptr = job->result;
+
+            if(epoll_ctl(job->epoll_fd, EPOLL_CTL_MOD, job->socket_fd, &ev) == -1)
+            {
+                perror("Failed to modify epoll for writing");
+                close(job->socket_fd);
+            }
             
             free(job->buffer);
             free(job);

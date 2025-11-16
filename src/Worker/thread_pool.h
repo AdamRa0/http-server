@@ -21,6 +21,8 @@ typedef struct ThreadJob
     void (* worker)(char buffer[], HTTPParserResult* result);
     char* buffer;
     HTTPParserResult* result;
+    int epoll_fd;
+    int socket_fd;
 } ThreadJob;
 
 ThreadPool* init_thread_pool(int num_threads);
