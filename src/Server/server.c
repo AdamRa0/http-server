@@ -121,22 +121,11 @@ int setup_server_socket(int port)
     if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) 
     {
         printf("Server running on port %d\n", port);
-    } else if (port == 80 && errno == EACCES) 
+    } else if (errno == EACCES) 
     {
-        printf("Port 80 requires root privileges, trying port 8080...\n");
-        
-        server_sockaddr_in.sin6_port = htons(8080);
-        
-        if (bind(socket_fd, (struct sockaddr*)&server_sockaddr_in, sizeof(server_sockaddr_in)) == 0) 
-        {
-            printf("Server running on port 8080\n");
-            printf("Access at: http://localhost:8080\n");
-        } else 
-        {
-            perror("Failed to bind socket");
-            close(socket_fd);
-            exit(EXIT_FAILURE);
-        }
+        perror("Failed to bind socket");
+        close(socket_fd);
+        exit(EXIT_FAILURE);
     }
     
     if (set_nonblocking(socket_fd) == -1)
@@ -284,12 +273,12 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
                 free(result);
 
                 // set client socket to write
-                ev.events = EPOLLOUT | EPOLLET
+                ev.events = EPOLLOUT | EPOLLET;
                 ev.data.ptr = result;
 
                 if(epoll_ctl(e_fd, EPOLL_CTL_MOD, s_fd, &ev) == -1)
                 {
-                    perror("Failed to monitor epoll for writing")
+                    perror("Failed to monitor epoll for writing");
                 } 
                 return;
             }
