@@ -12,7 +12,7 @@
 ## About Project
 An experimental web server aptly named Cerver. This is just a fun little project and the server is in no way production ready. However, feel free to mess around with it in your own local environment (Linux only).
 
-### Concurrent Model
+### Concurrency Model
 Cerver takes a hybrid approach with regards to handling concurrent requests. It runs an event loop which monitors all incoming requests. These requests are then processed by background threads utilized by this event loop. An image of the concurrency model can be found below.
 
 ![Concurrency Model Image](concurrency-model.drawio.png)
