@@ -274,12 +274,23 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
             buffer_size *= 2;
             if (buffer_size > MAX_MESSAGE_SIZE)
             {
+                // Write payload too large html page to http parser result struct
                 payload_too_large_handler(result);
+
                 perror("Payload received too large");
+
                 free(buffer);
                 free(result->client_ip);
                 free(result);
-                close(s_fd);
+
+                // set client socket to write
+                ev.events = EPOLLOUT | EPOLLET
+                ev.data.ptr = result;
+
+                if(epoll_ctl(e_fd, EPOLL_CTL_MOD, s_fd, &ev) == -1)
+                {
+                    perror("Failed to monitor epoll for writing")
+                } 
                 return;
             }
             buffer = realloc(buffer, buffer_size);
