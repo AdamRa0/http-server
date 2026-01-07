@@ -39,9 +39,11 @@ BucketNode* deque(Queue* queue)
 
     BucketNode* prev_head = queue->queue.head;
 
-    if (queue->queue.head->p_next != NULL)
+    BucketNode* future_head = queue->queue.head->p_next;
+
+    if (future_head != NULL)
     {
-        queue->queue.head = queue->queue.head->p_next;
+        queue->queue.head = future_head;
     } else 
     {
         queue->queue.head = NULL;

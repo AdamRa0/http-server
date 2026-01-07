@@ -84,8 +84,9 @@ void add_job_to_work_queue(ThreadPool* pool, ThreadJob* job)
     pthread_mutex_lock(&pool->lock);
 
     BucketNode* node = (BucketNode* ) malloc (sizeof(BucketNode));
-    node->key = NULL;
-    node->value = job;
+    node->key        = NULL;
+    node->value      = job;
+    node->p_next     = NULL;
     append(node, pool->work_queue);
     
     pthread_cond_signal(&pool->signal);
