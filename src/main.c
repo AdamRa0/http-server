@@ -37,6 +37,8 @@ int main()
     char* conf_file_path = build_path("cerver.json", NULL, NULL, true);
     
     FileData conf_data = read_file(conf_file_path);
+
+    free(conf_file_path);
     
     cJSON* conf_json_data = cJSON_ParseWithLength(conf_data.file_content, strlen(conf_data.file_content));
     
