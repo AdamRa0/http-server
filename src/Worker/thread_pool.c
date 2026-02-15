@@ -75,6 +75,8 @@ void* worker(void* arg)
             free(job->buffer);
             free(job);
         }
+
+        free(job_node);
     }
     return NULL;
 }
