@@ -46,6 +46,21 @@ int main()
     
     int server_socket = setup_server_socket(port);
 
+    if (conf_data.file_content)
+    {
+        free(conf_data.file_content);
+    }
+
+    if (conf_data.mime_type)
+    {
+        free(conf_data.mime_type);
+    }
+
+    if (conf_data.operation_msg)
+    {
+        free(conf_data.operation_msg);
+    }
+
     int epoll_fd = epoll_create1(0);
     
     if (epoll_fd == -1)

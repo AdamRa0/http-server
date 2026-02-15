@@ -277,6 +277,9 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
                 if(epoll_ctl(e_fd, EPOLL_CTL_MOD, s_fd, &ev) == -1)
                 {
                     perror("Failed to monitor epoll for writing");
+                    free(result->client_ip);
+                    free(result);
+                    close(s_fd);
                 } 
                 return;
             }
