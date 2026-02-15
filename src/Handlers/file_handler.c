@@ -212,7 +212,7 @@ FileData read_file(const char* filepath)
         data.mime_type = proper_mime_type;
     } else 
     {
-        data.mime_type = mime_type;
+        data.mime_type = strdup(mime_type);
     }
     
     return data;

@@ -171,7 +171,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
     
     if (response_type == RESPONSE_TYPE_ERROR)
     {
-        result->data_mime_type = strdup(file_data.mime_type);
+        result->data_mime_type = file_data.mime_type;
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size);
@@ -183,7 +183,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
 
     if (response_type == RESPONSE_TYPE_OK)
     {
-        result->data_mime_type = strdup(file_data.mime_type);
+        result->data_mime_type = file_data.mime_type;
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
@@ -195,7 +195,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
 
     if (response_type == RESPONSE_TYPE_OK_HEAD)
     {
-        result->data_mime_type = strdup(file_data.mime_type);
+        result->data_mime_type = file_data.mime_type;
         result->data_content = "";
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
@@ -216,7 +216,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
 
     if (response_type == RESPONSE_TYPE_NOT_FOUND)
     {
-        result->data_mime_type = strdup(not_found_data.mime_type);
+        result->data_mime_type = not_found_data.mime_type;
         result->data_content = not_found_data.file_content;
         result->response_size = not_found_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, not_found_data.mime_type, not_found_data.file_size);
@@ -227,7 +227,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
 
     if (response_type == RESPONSE_TYPE_FORBIDDEN)
     {
-        result->data_mime_type = strdup(file_data.mime_type);
+        result->data_mime_type = file_data.mime_type;
         result->data_content = file_data.file_content;
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_ERROR_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size);
