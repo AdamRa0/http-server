@@ -65,6 +65,8 @@ void insert_to_bucket(BucketNode* node, HashTable* dictionary, const char* entry
 
     if (strcmp(entry_type, ENTRY_TYPE_SINGLE) == 0)
     {
+        free(bucket->head->key);
+        free(bucket->head->value);
         free(bucket->head);
 
         bucket->head = node;
