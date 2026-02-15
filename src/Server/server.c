@@ -269,6 +269,8 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
                 perror("Payload received too large");
 
                 free(buffer);
+                free(result->client_ip);
+                free(result);
 
                 // set client socket to write
                 ev.events = EPOLLOUT | EPOLLET;

@@ -196,7 +196,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
     if (response_type == RESPONSE_TYPE_OK_HEAD)
     {
         result->data_mime_type = file_data.mime_type;
-        result->data_content = NULL;
+        result->data_content = "";
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
 
