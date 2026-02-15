@@ -18,6 +18,7 @@ int write_log(const char* logfile_path, const char* logfile_content)
     if (fd == NULL)
     {
         perror("Could not open file");
+        pthread_mutex_unlock(&logger_lock);
         return 1;
     }
 

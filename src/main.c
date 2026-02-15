@@ -56,11 +56,6 @@ int main()
         free(conf_data.mime_type);
     }
 
-    if (conf_data.operation_msg)
-    {
-        free(conf_data.operation_msg);
-    }
-
     int epoll_fd = epoll_create1(0);
     
     if (epoll_fd == -1)
