@@ -113,4 +113,5 @@ void destroy_thread_pool(ThreadPool* thread_pool)
     pthread_mutex_destroy(&thread_pool->lock);
     pthread_cond_destroy(&thread_pool->signal);
     destroy_queue(thread_pool->work_queue);
+    free(thread_pool);
 }
