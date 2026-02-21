@@ -315,9 +315,11 @@ void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data,
     add_job_to_work_queue(worker_pool, job);
 }
 
-void on_socket_available_to_write(void* ptr, int s_fd)
+void on_socket_available_to_write(void* ptr, int e_fd)
 {
     HTTPParserResult* result = (HTTPParserResult* ) ptr;
+
+    struct epoll_event ev;
                     
     int client_conn_fd = result->client_socket_fd;
     
@@ -337,7 +339,8 @@ void on_socket_available_to_write(void* ptr, int s_fd)
         free(result->response_headers);
         result->response_headers = NULL;
     }
-
+    
+    
     if (result->data_content)
     {
         ssize_t sent_content = send(client_conn_fd, result->data_content, result->response_size, 0);
@@ -345,13 +348,7 @@ void on_socket_available_to_write(void* ptr, int s_fd)
         if(sent_content < 0)
         {
             perror("Could not send content");
-        }
-        
-        if(result->data_mime_type) 
-        {
-            free(result->data_mime_type);
-            result->data_mime_type=NULL;
-        }
+        }    
         
         if(result->data_content) 
         {
@@ -360,6 +357,12 @@ void on_socket_available_to_write(void* ptr, int s_fd)
         }
     }
     
+    if(result->data_mime_type) 
+    {
+        free(result->data_mime_type);
+        result->data_mime_type=NULL;
+    }
+
     cork = 0;
     setsockopt(client_conn_fd, IPPROTO_TCP, TCP_CORK, &cork, sizeof(cork));
 
@@ -388,15 +391,22 @@ void on_socket_available_to_write(void* ptr, int s_fd)
         free(result->client_ip);
         result->client_ip = NULL;
     }
-
-    if (s_fd == client_conn_fd && result)
+    
+    if (result)
     {
         free(result);
         result = NULL;
     }
 
-    if (client_connection_status != KEEP_ALIVE)
+    if (client_connection_status == KEEP_ALIVE)
     {
+        ev.events = EPOLLIN | EPOLLET;
+        ev.data.fd = client_conn_fd;
+        epoll_ctl(e_fd, EPOLL_CTL_MOD, client_conn_fd, &ev);
+    }
+    else
+    {
+        epoll_ctl(e_fd, EPOLL_CTL_DEL, client_conn_fd, NULL);
         close(client_conn_fd);
         return;
     }
@@ -419,6 +429,7 @@ void run_event_loop(int e_fd, int s_fd, struct epoll_event ev,
         if (no_fds == -1)
         {
             perror("error in epoll_wait");
+            destroy_thread_pool(worker_pool);
             break;
         }
         
@@ -439,7 +450,7 @@ void run_event_loop(int e_fd, int s_fd, struct epoll_event ev,
                     on_socket_available_to_read(e_fd, conn, config_data, client_addr, client_addr_len, ev);
                 } else if (events[i].events & EPOLLOUT)
                 {
-                    on_socket_available_to_write(events[i].data.ptr, conn);
+                    on_socket_available_to_write(events[i].data.ptr, e_fd);
                 } else if (events[i].events & EPOLLERR)
                 {
                     perror("Socket error occured");
@@ -452,7 +463,6 @@ void run_event_loop(int e_fd, int s_fd, struct epoll_event ev,
 
 void close_server(int e_fd, int server_sock_fd, cJSON* config_data)
 {
-    destroy_thread_pool(worker_pool);
     epoll_ctl(e_fd, EPOLL_CTL_DEL, server_sock_fd, NULL);
     close(e_fd);
 

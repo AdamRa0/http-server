@@ -6,7 +6,7 @@ LOGROOT := /var/log
 
 CC := gcc
 
-CFLAGS := -Wall -Wextra -g
+CFLAGS := -Wall -Wextra -fsanitize=address -g
 
 SRC_DIR := src
 HTML_DIR := html
@@ -21,7 +21,7 @@ OBJS = $(SRCS:.c=.o)
 all: $(OUTPUT)
 
 $(OUTPUT): $(OBJS) | $(BIN_DIR)
-	$(CC) -o $@ $^
+	$(CC) -fsanitize=address -o $@ $^
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)

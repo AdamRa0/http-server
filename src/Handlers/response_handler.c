@@ -64,6 +64,8 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
                         status_code = NOT_FOUND_STATUS_CODE;
                         status = NOT_FOUND_STATUS;
                         response_type = RESPONSE_TYPE_NOT_FOUND;
+
+                        free(temp_path);
                     }
 
                     else if (strcmp(file_data.operation_msg, COULD_NOT_READ_FILE_ERROR) == 0)
@@ -119,6 +121,8 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
                         status_code = NOT_FOUND_STATUS_CODE;
                         status = NOT_FOUND_STATUS;
                         response_type = RESPONSE_TYPE_NOT_FOUND;
+
+                        free(temp_path);
                     }
 
                     else if (strcmp(file_data.operation_msg, COULD_NOT_READ_FILE_ERROR) == 0)
@@ -197,6 +201,7 @@ void set_server_response(HTTPParserResult* result, char* filename, HashTable* h_
     {
         result->data_mime_type = file_data.mime_type;
         result->data_content = NULL;
+        free(file_data.file_content);
         result->response_size = file_data.file_size;
         result->response_headers_size = snprintf(response, RESPONSE_SIZE, SERVER_OK_RESPONSE_HEADER, status_code, status, date_buffer, file_data.mime_type, file_data.file_size, connection_header_value);
 

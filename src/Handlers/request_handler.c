@@ -75,7 +75,9 @@ void handle_request(HTTPParserResult* result, HashTable* h_dict)
     {
         case HEAD:
             char* default_path = build_path(result->default_index_file->valuestring, result->web_page_root->valuestring, NULL, false);
+            set_connection_status(result, h_dict);
             set_server_response(result, default_path, h_dict);
+            free(default_path);
             break;
         case OPTIONS:
             set_server_response(result, NULL, h_dict);

@@ -21,7 +21,7 @@ void add_client_socket_to_event_loop(int e_fd, int sock_fd, struct epoll_event e
 
 void on_socket_available_to_read(int e_fd, int s_fd, cJSON* config_data, struct sockaddr_in6 client_addr, socklen_t client_addr_len, struct epoll_event ev);
 
-void on_socket_available_to_write(void* ptr, int s_fd);
+void on_socket_available_to_write(void* ptr, int e_fd);
 
 void run_event_loop(int e_fd, int s_fd, struct epoll_event ev, struct epoll_event* events, int num_events, struct timeval timeout, cJSON* config_data);
 

@@ -158,13 +158,7 @@ FileData read_file(const char* filepath)
 
     if (fd == NULL)
     {
-        data.operation_msg = COULD_NOT_READ_FILE_ERROR;
-        return data;
-    }
-
-    if (errno == EIO)
-    {
-        data.operation_msg = COULD_NOT_READ_FILE_ERROR;
+        data.operation_msg = (errno == EIO) ? COULD_NOT_READ_FILE_ERROR : COULD_NOT_READ_FILE_ERROR;
         return data;
     }
 

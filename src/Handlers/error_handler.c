@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "error_handler.h"
 #include "response_handler.h"
@@ -13,6 +14,7 @@ void bad_request_handler(HTTPParserResult* result)
     char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
     set_server_response(result, path, NULL);
+    free(path);
 }
 
 void forbidden_request_handler(HTTPParserResult* result)
@@ -21,6 +23,7 @@ void forbidden_request_handler(HTTPParserResult* result)
     char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
     set_server_response(result, path, NULL);
+    free(path);
 }
 
 void payload_too_large_handler(HTTPParserResult* result)
@@ -29,6 +32,7 @@ void payload_too_large_handler(HTTPParserResult* result)
     char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
     set_server_response(result, path, NULL);
+    free(path);
 }
 
 void server_error_handler(HTTPParserResult* result)
@@ -37,4 +41,5 @@ void server_error_handler(HTTPParserResult* result)
     char* path = build_path(filename, NULL, result->error_page_root->valuestring, false);
 
     set_server_response(result, path, NULL);
+    free(path);
 }
